@@ -20,7 +20,25 @@ pub enum Attribute {
 pub struct UnprocessedMetadata {
     pub location: Location,
     pub name: (String, Location),
-    pub entries: Vec<Rc<UnprocessedMetadataEntry>>,
+    pub entries: Option<Vec<Rc<UnprocessedMetadataEntry>>>,
+}
+
+impl UnprocessedMetadata {
+    pub(crate) fn process(&self, verifier: &mut VerifierVerifier) -> Rc<Metadata> {
+        let mut entries = Vec::<Rc<MetadataEntry>>::new();
+        if let Some(u_entries) = self.entries.as_ref() {
+            for entry in u_entries {
+                let r = entry.process(verifier);
+                if let Ok(r) = r {
+                    entries.push(r.clone());
+                }
+            }
+        }
+        Rc::new(Metadata {
+            name: self.name.0.clone(),
+            entries,
+        })
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -30,10 +48,25 @@ pub struct UnprocessedMetadataEntry {
     pub value: Rc<UnprocessedMetadataValue>,
 }
 
+impl UnprocessedMetadataEntry {
+    pub(crate) fn process(&self, verifier: &mut VerifierVerifier) -> Result<Rc<MetadataEntry>, ()> {
+        let value = self.value.process(verifier);
+        let Ok(value) = value else {
+            return Err(());
+        };
+        Ok(Rc::new(MetadataEntry {
+            key: self.key.as_ref().map(|(k, _)| k.clone()),
+            value,
+        }))
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub enum UnprocessedMetadataValue {
+    IdentifierString((String, Location)),
     String((String, Location)),
-    Number((f64, Location)),
+    /// Numeric literal. Possibly contains a minus sign "-" prefix.
+    Number((String, Location)),
     Boolean((bool, Location)),
     File {
         location: Location,
@@ -46,11 +79,71 @@ pub enum UnprocessedMetadataValue {
 impl UnprocessedMetadataValue {
     pub fn location(&self) -> Location {
         match self {
+            Self::IdentifierString((_, l)) => l.clone(),
             Self::String((_, l)) => l.clone(),
             Self::Number((_, l)) => l.clone(),
             Self::Boolean((_, l)) => l.clone(),
             Self::File { location, .. } => location.clone(),
             Self::List((_, l)) => l.clone(),
+        }
+    }
+
+    pub(crate) fn process(&self, verifier: &mut VerifierVerifier) -> Result<Rc<MetadataValue>, ()> {
+        match self {
+            Self::IdentifierString((v, _)) => Ok(Rc::new(MetadataValue::String(v.clone()))),
+            Self::String((v, _)) => Ok(Rc::new(MetadataValue::String(v.clone()))),
+            Self::Number((v, l)) => {
+                let mut v = v.clone();
+                let mut negative = false;
+                if v.starts_with("-") {
+                    negative = true;
+                    v = v[1..].to_owned();
+                }
+                let v = NumericLiteral {
+                    value: v,
+                    location: l.clone(),
+                };
+                let v = v.parse_double(negative);
+                if let Ok(v) = v {
+                    Ok(Rc::new(MetadataValue::Number(v)))
+                } else {
+                    verifier.add_verify_error(&l, DiagnosticKind::FailedParsingNumericLiteral, diagnostic_arguments![]);
+                    Err(())
+                }
+            },
+            Self::Boolean((v, _)) => Ok(Rc::new(MetadataValue::Boolean(*v))),
+            Self::File { location, output, file_path } => {
+                use file_paths::FlexPath;
+
+                // Resolve file path
+                let mut file_path = file_path.0.clone();
+                if *output {
+                    file_path = FlexPath::from_n_native([verifier.host.jetpm_output_directory().as_ref(), file_path.as_ref()]).to_string_with_flex_separator();
+                } else {
+                    file_path = FlexPath::new_native(&self.location().compilation_unit().file_path().unwrap_or(String::new())).resolve("..").resolve(&file_path).to_string_with_flex_separator();
+                }
+
+                // Read file
+                if let Ok(data) = std::fs::read(&file_path) {
+                    Ok(Rc::new(MetadataValue::File {
+                        filename: FlexPath::new_native(&file_path).base_name(),
+                        data,
+                    }))
+                } else {
+                    verifier.add_verify_error(&location, DiagnosticKind::FailedLoadingMetadataFile, diagnostic_arguments![String(file_path)]);
+                    Err(())
+                }
+            },
+            Self::List((u_entries, _)) => {
+                let mut entries = Vec::<Rc<MetadataEntry>>::new();
+                for entry in u_entries {
+                    let r = entry.process(verifier);
+                    if let Ok(r) = r {
+                        entries.push(r.clone());
+                    }
+                }
+                Ok(Rc::new(MetadataValue::List(entries)))
+            },
         }
     }
 }

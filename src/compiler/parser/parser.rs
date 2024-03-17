@@ -2664,11 +2664,6 @@ impl<'input> Parser<'input> {
                     Err(MetadataRefineError1(MetadataRefineError::Syntax, loc)) => {
                         self.add_syntax_error(&loc, DiagnosticKind::UnrecognizedMetadataSyntax, diagnostic_arguments![]);
                     },
-                    /*
-                    Err(MetadataRefineError1(MetadataRefineError::FailedLoadingFile { path }, loc)) => {
-                        self.add_syntax_error(&loc, DiagnosticKind::FailedLoadingMetadataFile, diagnostic_arguments![String(path.clone())]);
-                    },
-                    */
                 }
             }
             // Block statement with meta-data
@@ -2686,11 +2681,6 @@ impl<'input> Parser<'input> {
                     Err(MetadataRefineError1(MetadataRefineError::Syntax, loc)) => {
                         self.add_syntax_error(&loc, DiagnosticKind::UnrecognizedMetadataSyntax, diagnostic_arguments![]);
                     },
-                    /*
-                    Err(MetadataRefineError1(MetadataRefineError::FailedLoadingFile { path }, loc)) => {
-                        self.add_syntax_error(&loc, DiagnosticKind::FailedLoadingMetadataFile, diagnostic_arguments![String(path.clone())]);
-                    },
-                    */
                 }
             }
             let semicolon = self.parse_semicolon()?;
@@ -2759,14 +2749,14 @@ impl<'input> Parser<'input> {
             Ok(Rc::new(UnprocessedMetadata {
                 location: exp.location(),
                 name,
-                entries: self.refine_metadata_entries(arguments)?,
+                entries: Some(self.refine_metadata_entries(arguments)?),
             }))
         } else {
             if let Ok(name) = self.refine_metadata_name(exp) {
                 Ok(Rc::new(UnprocessedMetadata {
                     location: exp.location(),
                     name,
-                    entries: vec![],
+                    entries: None,
                 }))
             } else {
                 Err(MetadataRefineError::Syntax)
@@ -2831,9 +2821,13 @@ impl<'input> Parser<'input> {
 
     fn refine_metadata_value(&self, exp: &Rc<Expression>) -> Result<UnprocessedMetadataValue, MetadataRefineError> {
         match exp.as_ref() {
+            Expression::QualifiedIdentifier(_) => {
+                let name = self.refine_metadata_name(&exp)?;
+                Ok(UnprocessedMetadataValue::IdentifierString(name))
+            },
             Expression::StringLiteral(StringLiteral { value, .. }) => Ok(UnprocessedMetadataValue::String((value.clone(), exp.location()))),
             Expression::BooleanLiteral(BooleanLiteral { value, .. }) => Ok(UnprocessedMetadataValue::Boolean((*value, exp.location()))),
-            Expression::NumericLiteral(nl) => Ok(UnprocessedMetadataValue::Number((nl.parse_double(false).map_err(|_| MetadataRefineError::Syntax)?, exp.location()))),
+            Expression::NumericLiteral(nl) => Ok(UnprocessedMetadataValue::Number((nl.value.clone(), exp.location()))),
             Expression::Unary(unary) => {
                 if unary.operator != Operator::Negative {
                     return Err(MetadataRefineError::Syntax);
@@ -2841,7 +2835,7 @@ impl<'input> Parser<'input> {
                 let Expression::NumericLiteral(nl) = unary.expression.as_ref() else {
                     return Err(MetadataRefineError::Syntax);
                 };
-                Ok(UnprocessedMetadataValue::Number((nl.parse_double(true).map_err(|_| MetadataRefineError::Syntax)?, exp.location())))
+                Ok(UnprocessedMetadataValue::Number(("-".to_owned() + &nl.value, exp.location())))
             },
             Expression::Call(CallExpression { base, arguments, .. }) => {
                 let name = base.to_identifier_name();
@@ -2902,48 +2896,6 @@ impl<'input> Parser<'input> {
             file_path: path,
         })
     }
-
-    /*
-    fn refine_metadata_file_value(&self, list: &Vec<Rc<Expression>>) -> Result<UnprocessedMetadataValue, MetadataRefineError> {
-        use file_paths::FlexPath;
-        if list.len() != 1 {
-            return Err(MetadataRefineError::Syntax);
-        }
-        let path: String;
-        match list[0].as_ref() {
-            Expression::StringLiteral(StringLiteral { value, .. }) => {
-                path = FlexPath::new_native(&self.compilation_unit().file_path().unwrap_or(String::new())).resolve("..").resolve(value).to_string_with_flex_separator();
-            },
-            Expression::Binary(BinaryExpression { left, operator, right, .. }) => {
-                if *operator != Operator::Add {
-                    return Err(MetadataRefineError::Syntax);
-                }
-                let Some(left_id) = left.to_identifier_name_or_asterisk() else {
-                    return Err(MetadataRefineError::Syntax);
-                };
-                if left_id.0 != "output" {
-                    return Err(MetadataRefineError::Syntax);
-                }
-                let Expression::StringLiteral(StringLiteral { value: right_val, .. }) = right.as_ref() else {
-                    return Err(MetadataRefineError::Syntax);
-                };
-                path = FlexPath::from_n_native([self.host.jetpm_output_directory().as_ref(), right_val.as_ref()]).to_string_with_flex_separator();
-            },
-            _ => {
-                return Err(MetadataRefineError::Syntax);
-            },
-        }
-
-        if let Ok(data) = std::fs::read(&path) {
-            Ok(UnprocessedMetadataValue::File {
-                filename: FlexPath::new_native(&path).base_name(),
-                data,
-            })
-        } else {
-            Err(MetadataRefineError::FailedLoadingFile { path })
-        }
-    }
-    */
 
     fn parse_import_directive_or_expression_statement(&mut self, _context: ParsingDirectiveContext) -> Result<(Rc<Directive>, bool), ParsingFailure> {
         self.mark_location();
