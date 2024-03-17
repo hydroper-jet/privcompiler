@@ -1052,28 +1052,28 @@ impl Symbol {
         }
     }
 
-    pub fn plain_metadata(&self) -> SharedArray<Rc<PlainMetadata>> {
+    pub fn metadata(&self) -> SharedArray<Rc<Metadata>> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::ClassType(data)) => {
-                let ClassTypeData { ref plain_metadata, .. } = data.as_ref();
-                plain_metadata.clone()
+                let ClassTypeData { ref metadata, .. } = data.as_ref();
+                metadata.clone()
             },
             SymbolKind::Type(TypeKind::EnumType(data)) => {
-                let EnumTypeData { ref plain_metadata, .. } = data.as_ref();
-                plain_metadata.clone()
+                let EnumTypeData { ref metadata, .. } = data.as_ref();
+                metadata.clone()
             },
             SymbolKind::Type(TypeKind::InterfaceType(data)) => {
-                let InterfaceTypeData { ref plain_metadata, .. } = data.as_ref();
-                plain_metadata.clone()
+                let InterfaceTypeData { ref metadata, .. } = data.as_ref();
+                metadata.clone()
             },
-            SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.plain_metadata(),
-            SymbolKind::Alias(data) => data.plain_metadata.clone(),
-            SymbolKind::VariableProperty(data) => data.plain_metadata.clone(),
-            SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.plain_metadata(),
-            SymbolKind::Function(data) => data.plain_metadata.clone(),
-            SymbolKind::FunctionAfterExplicitOrIndirectTypeSubstitution(data) => data.origin.plain_metadata(),
-            SymbolKind::BlockStatement(data) => data.plain_metadata.clone(),
+            SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.metadata(),
+            SymbolKind::Alias(data) => data.metadata.clone(),
+            SymbolKind::VariableProperty(data) => data.metadata.clone(),
+            SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.metadata(),
+            SymbolKind::Function(data) => data.metadata.clone(),
+            SymbolKind::FunctionAfterExplicitOrIndirectTypeSubstitution(data) => data.origin.metadata(),
+            SymbolKind::BlockStatement(data) => data.metadata.clone(),
             _ => panic!(),
         }
     }
@@ -2749,7 +2749,7 @@ pub(crate) enum SymbolKind {
 }
 
 pub(crate) struct BlockStatementSymbolData {
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
 }
 
 pub(crate) struct VariableDefinitionDirectiveSymbolData {
@@ -2783,7 +2783,7 @@ pub(crate) struct ClassTypeData {
     pub proxies: SharedMap<ProxyKind, Symbol>,
     pub list_of_to_proxies: SharedArray<Symbol>,
     pub limited_subclasses: SharedArray<Symbol>,
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
 }
 
@@ -2798,7 +2798,7 @@ pub(crate) struct EnumTypeData {
     pub proxies: SharedMap<ProxyKind, Symbol>,
     pub list_of_to_proxies: SharedArray<Symbol>,
     pub enumeration_members: SharedMap<String, AbstractRangeNumber>,
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
 }
 
@@ -2810,7 +2810,7 @@ pub(crate) struct InterfaceTypeData {
     pub type_parameters: RefCell<Option<SharedArray<Symbol>>>,
     pub prototype: SharedMap<String, Symbol>,
     pub limited_implementors: SharedArray<Symbol>,
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
 }
 
@@ -2855,7 +2855,7 @@ pub(crate) struct AliasData {
     pub visibility: Cell<Visibility>,
     pub alias_of: RefCell<Symbol>,
     pub parent_definition: RefCell<Option<Symbol>>,
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
 }
 
@@ -2884,7 +2884,7 @@ pub(crate) struct VariablePropertyData {
     pub read_only: Cell<bool>,
     pub constant_initializer: RefCell<Option<Symbol>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
 }
 
 pub(crate) struct VariablePropertyAfterIndirectTypeSubstitutionData {
@@ -2924,7 +2924,7 @@ pub(crate) struct FunctionSymbolData {
     pub overriden_by: SharedArray<Symbol>,
     pub overrides_method: RefCell<Option<Symbol>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
-    pub plain_metadata: SharedArray<Rc<PlainMetadata>>,
+    pub metadata: SharedArray<Rc<Metadata>>,
     pub activation_scope: RefCell<Option<Symbol>>,
 }
 
@@ -3187,7 +3187,7 @@ impl Deref for VoidType {
 /// * `proxies()`
 /// * `list_of_to_proxies()`
 /// * `limited_subclasses()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `jetdoc()`
@@ -3226,7 +3226,7 @@ impl Deref for ClassType {
 /// * `enumeration_members()`
 /// * `proxies()`
 /// * `list_of_to_proxies()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `jetdoc()`
@@ -3261,7 +3261,7 @@ impl Deref for EnumType {
 /// * `set_type_parameters()`
 /// * `prototype()`
 /// * `limited_implementors()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `jetdoc()`
@@ -3414,7 +3414,7 @@ impl Deref for TypeParameterType {
 /// * `prototype()`
 /// * `proxies()`
 /// * `list_of_to_proxies()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `visibility()`
 /// * `jetdoc()`
 /// * `includes_undefined()` — Returns `false`.
@@ -3445,7 +3445,7 @@ impl Deref for TypeAfterExplicitTypeSubstitution {
 /// * `set_alias_of()`
 /// * `parent_definition()`
 /// * `set_parent_definition()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `jetdoc()`
 /// * `set_jetdoc()`
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -3530,7 +3530,7 @@ impl Deref for PackageSet {
 /// * `set_read_only()`
 /// * `constant_initializer()`
 /// * `set_constant_initializer()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `jetdoc()`
 /// * `set_jetdoc()`
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -3561,7 +3561,7 @@ impl Deref for VariableProperty {
 /// * `visibility()`
 /// * `static_type()`
 /// * `read_only()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `jetdoc()`
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct VariablePropertyAfterIndirectTypeSubstitution(pub Symbol);
@@ -3654,7 +3654,7 @@ impl Deref for VirtualPropertyAfterIndirectTypeSubstitution {
 /// * `set_visibility()`
 /// * `jetdoc()`
 /// * `set_jetdoc()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `is_generator()`
 /// * `is_async()`
 /// * `is_native()`
@@ -3707,7 +3707,7 @@ impl Deref for FunctionSymbol {
 /// * `parent_definition()`
 /// * `visibility()`
 /// * `jetdoc()`
-/// * `plain_metadata()`
+/// * `metadata()`
 /// * `is_generator()`
 /// * `is_async()`
 /// * `is_native()`
@@ -4429,7 +4429,7 @@ impl Deref for FunctionValue {
 /// # Supported methods
 ///
 /// * `is_block_statement()`
-/// * `plain_metadata()`
+/// * `metadata()`
 pub struct BlockStatementSymbol(pub Symbol);
 
 impl Deref for BlockStatementSymbol {

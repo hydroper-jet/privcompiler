@@ -35,7 +35,7 @@ impl<'a> SymbolFactory<'a> {
             proxies: SharedMap::new(),
             list_of_to_proxies: SharedArray::new(),
             limited_subclasses: SharedArray::new(),
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         })))))
     }
@@ -52,7 +52,7 @@ impl<'a> SymbolFactory<'a> {
             proxies: SharedMap::new(),
             list_of_to_proxies: SharedArray::new(),
             enumeration_members: SharedMap::new(),
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         })))))
     }
@@ -66,7 +66,7 @@ impl<'a> SymbolFactory<'a> {
             type_parameters: RefCell::new(None),
             prototype: SharedMap::new(),
             limited_implementors: SharedArray::new(),
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         })))))
     }
@@ -214,7 +214,7 @@ impl<'a> SymbolFactory<'a> {
             visibility: Cell::new(Visibility::Internal),
             alias_of: RefCell::new(alias_of.clone()),
             parent_definition: RefCell::new(None),
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         }))))
     }
@@ -271,7 +271,7 @@ impl<'a> SymbolFactory<'a> {
             static_type: RefCell::new(static_type.clone()),
             constant_initializer: RefCell::new(None),
             parent_definition: RefCell::new(None),
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         }))))
     }
@@ -389,7 +389,7 @@ impl<'a> SymbolFactory<'a> {
             name,
             visibility: Cell::new(Visibility::Internal),
             parent_definition: RefCell::new(None),
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
             flags: RefCell::new(FunctionSymbolFlags::empty()),
             signature: RefCell::new(signature.clone()),
@@ -770,7 +770,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_block_statement(&self) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::BlockStatement(Rc::new(BlockStatementSymbolData {
-            plain_metadata: SharedArray::new(),
+            metadata: SharedArray::new(),
         }))))
     }
 

@@ -191,7 +191,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hydroper_jet_parser_tester"
+name = "hydroper_jet_parser_test"
 version = "0.1.0"
 dependencies = [
  "clap",

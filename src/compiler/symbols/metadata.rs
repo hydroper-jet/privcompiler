@@ -2,19 +2,19 @@ use std::rc::Rc;
 use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct PlainMetadata {
+pub struct Metadata {
     pub name: String,
-    pub entries: Vec<Rc<PlainMetadataEntry>>,
+    pub entries: Vec<Rc<MetadataEntry>>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct PlainMetadataEntry {
+pub struct MetadataEntry {
     pub key: Option<String>,
-    pub value: Rc<PlainMetadataValue>,
+    pub value: Rc<MetadataValue>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub enum PlainMetadataValue {
+pub enum MetadataValue {
     String(String),
     Number(f64),
     Boolean(bool),
@@ -22,5 +22,5 @@ pub enum PlainMetadataValue {
         filename: String,
         data: Vec<u8>,
     },
-    List(Vec<Rc<PlainMetadataEntry>>),
+    List(Vec<Rc<MetadataEntry>>),
 }

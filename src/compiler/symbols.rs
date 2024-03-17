@@ -1,7 +1,7 @@
 mod visibility;
 pub use visibility::*;
-mod plain_metadata;
-pub use plain_metadata::*;
+mod metadata;
+pub use metadata::*;
 mod symbol_host;
 pub use symbol_host::*;
 mod symbol_factory;

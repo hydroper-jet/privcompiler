@@ -3,7 +3,7 @@
 ## Covered
 
 * [x] `Visibility`
-* [x] `PlainMetadata`
+* [x] `Metadata`
 * [x] `SymbolHost`
 * [x] `Symbol`
 * [x] `SymbolFactory`
