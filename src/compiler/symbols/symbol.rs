@@ -2326,7 +2326,7 @@ impl Symbol {
 
     /// Given a type base, returns its default value.
     pub fn type_default_value(&self, host: &SymbolHost) -> Option<Symbol> {
-        if self.is_void_type() {
+        if self.is_any_type() || self.is_void_type() {
             Some(host.factory().create_undefined_constant(self))
         } else if self.is_nullable_type() {
             Some(host.factory().create_null_constant(self))
