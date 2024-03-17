@@ -1,0 +1,330 @@
+{
+  "location": {},
+  "packages": [
+    {
+      "location": {},
+      "jetdoc": null,
+      "name": [],
+      "block": {
+        "location": {},
+        "metadata": null,
+        "directives": [
+          {
+            "VariableDefinition": {
+              "location": {},
+              "jetdoc": null,
+              "attributes": [],
+              "kind": [
+                "Var",
+                {}
+              ],
+              "bindings": [
+                {
+                  "destructuring": {
+                    "location": {},
+                    "destructuring": {
+                      "QualifiedIdentifier": {
+                        "location": {},
+                        "attribute": false,
+                        "qualifier": null,
+                        "id": {
+                          "Id": [
+                            "n1",
+                            {}
+                          ]
+                        }
+                      }
+                    },
+                    "type_annotation": null
+                  },
+                  "initializer": null
+                }
+              ]
+            }
+          },
+          {
+            "VariableDefinition": {
+              "location": {},
+              "jetdoc": null,
+              "attributes": [
+                {
+                  "Public": {}
+                }
+              ],
+              "kind": [
+                "Var",
+                {}
+              ],
+              "bindings": [
+                {
+                  "destructuring": {
+                    "location": {},
+                    "destructuring": {
+                      "QualifiedIdentifier": {
+                        "location": {},
+                        "attribute": false,
+                        "qualifier": null,
+                        "id": {
+                          "Id": [
+                            "n2",
+                            {}
+                          ]
+                        }
+                      }
+                    },
+                    "type_annotation": null
+                  },
+                  "initializer": null
+                }
+              ]
+            }
+          },
+          {
+            "EnumDefinition": {
+              "location": {},
+              "jetdoc": null,
+              "attributes": [],
+              "is_set": false,
+              "name": [
+                "E1",
+                {}
+              ],
+              "as_clause": null,
+              "block": {
+                "location": {},
+                "metadata": null,
+                "directives": []
+              }
+            }
+          },
+          {
+            "EnumDefinition": {
+              "location": {},
+              "jetdoc": null,
+              "attributes": [
+                {
+                  "Public": {}
+                }
+              ],
+              "is_set": true,
+              "name": [
+                "E2",
+                {}
+              ],
+              "as_clause": null,
+              "block": {
+                "location": {},
+                "metadata": null,
+                "directives": []
+              }
+            }
+          },
+          {
+            "ClassDefinition": {
+              "location": {},
+              "jetdoc": null,
+              "attributes": [
+                {
+                  "Abstract": {}
+                }
+              ],
+              "allow_literal": false,
+              "name": [
+                "C1",
+                {}
+              ],
+              "type_parameters": null,
+              "extends_clause": null,
+              "implements_clause": null,
+              "block": {
+                "location": {},
+                "metadata": null,
+                "directives": []
+              }
+            }
+          },
+          {
+            "ClassDefinition": {
+              "location": {},
+              "jetdoc": null,
+              "attributes": [],
+              "allow_literal": false,
+              "name": [
+                "C2",
+                {}
+              ],
+              "type_parameters": null,
+              "extends_clause": null,
+              "implements_clause": null,
+              "block": {
+                "location": {},
+                "metadata": null,
+                "directives": []
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "directives": [
+    {
+      "ClassDefinition": {
+        "location": {},
+        "jetdoc": null,
+        "attributes": [],
+        "allow_literal": false,
+        "name": [
+          "CTP",
+          {}
+        ],
+        "type_parameters": null,
+        "extends_clause": {
+          "QualifiedIdentifier": {
+            "location": {},
+            "attribute": false,
+            "qualifier": null,
+            "id": {
+              "Id": [
+                "C1",
+                {}
+              ]
+            }
+          }
+        },
+        "implements_clause": null,
+        "block": {
+          "location": {},
+          "metadata": null,
+          "directives": [
+            {
+              "FunctionDefinition": {
+                "location": {},
+                "jetdoc": null,
+                "attributes": [
+                  {
+                    "Override": {}
+                  },
+                  {
+                    "Final": {}
+                  }
+                ],
+                "name": {
+                  "Identifier": [
+                    "f",
+                    {}
+                  ]
+                },
+                "type_parameters": null,
+                "common": {
+                  "location": {},
+                  "contains_yield": false,
+                  "contains_await": false,
+                  "signature": {
+                    "location": {},
+                    "parameters": [],
+                    "result_type": {
+                      "VoidType": {
+                        "location": {}
+                      }
+                    }
+                  },
+                  "body": {
+                    "Block": {
+                      "location": {},
+                      "metadata": null,
+                      "directives": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Block": {
+        "location": {},
+        "metadata": [
+          {
+            "Metadata": [
+              {
+                "name": "N1",
+                "entries": [
+                  {
+                    "key": "x",
+                    "value": {
+                      "String": "y"
+                    }
+                  },
+                  {
+                    "key": "x",
+                    "value": {
+                      "Number": 4.0
+                    }
+                  },
+                  {
+                    "key": "x",
+                    "value": {
+                      "Number": -4.0
+                    }
+                  },
+                  {
+                    "key": null,
+                    "value": {
+                      "File": {
+                        "filename": "asset.txt",
+                        "data": [
+                          65
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "key": null,
+                    "value": {
+                      "File": {
+                        "filename": "generated.txt",
+                        "data": [
+                          48
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              {}
+            ]
+          }
+        ],
+        "directives": [
+          {
+            "ExpressionStatement": {
+              "location": {},
+              "expression": {
+                "Call": {
+                  "location": {},
+                  "base": {
+                    "QualifiedIdentifier": {
+                      "location": {},
+                      "attribute": false,
+                      "qualifier": null,
+                      "id": {
+                        "Id": [
+                          "run",
+                          {}
+                        ]
+                      }
+                    }
+                  },
+                  "arguments": []
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

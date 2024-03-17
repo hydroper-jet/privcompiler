@@ -1,0 +1,22 @@
+/**
+ * Núcleo.
+ */
+package deskomplika.nucleo {
+    /**
+     * Main body
+     * @example Example text
+     */
+    public var x;
+
+    /**
+     * @example
+     * ```
+     * f();
+     * ```
+     * @throws ReferenceError Occasionally.
+     * @see C#x
+     * @see #y Useful
+     * @return Always `T`
+     */
+    public function f(): T {}
+}
