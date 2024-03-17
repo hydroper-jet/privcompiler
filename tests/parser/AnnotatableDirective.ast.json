@@ -248,54 +248,82 @@
         "location": {},
         "metadata": [
           {
-            "Metadata": [
-              {
-                "name": "N1",
-                "entries": [
-                  {
-                    "key": "x",
-                    "value": {
-                      "String": "y"
-                    }
-                  },
-                  {
-                    "key": "x",
-                    "value": {
-                      "Number": 4.0
-                    }
-                  },
-                  {
-                    "key": "x",
-                    "value": {
-                      "Number": -4.0
-                    }
-                  },
-                  {
-                    "key": null,
-                    "value": {
-                      "File": {
-                        "filename": "asset.txt",
-                        "data": [
-                          65
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "key": null,
-                    "value": {
-                      "File": {
-                        "filename": "generated.txt",
-                        "data": [
-                          48
-                        ]
-                      }
+            "Metadata": {
+              "location": {},
+              "name": [
+                "N1",
+                {}
+              ],
+              "entries": [
+                {
+                  "location": {},
+                  "key": [
+                    "x",
+                    {}
+                  ],
+                  "value": {
+                    "String": [
+                      "y",
+                      {}
+                    ]
+                  }
+                },
+                {
+                  "location": {},
+                  "key": [
+                    "x",
+                    {}
+                  ],
+                  "value": {
+                    "Number": [
+                      "4",
+                      {}
+                    ]
+                  }
+                },
+                {
+                  "location": {},
+                  "key": [
+                    "x",
+                    {}
+                  ],
+                  "value": {
+                    "Number": [
+                      "-4",
+                      {}
+                    ]
+                  }
+                },
+                {
+                  "location": {},
+                  "key": null,
+                  "value": {
+                    "File": {
+                      "location": {},
+                      "output": false,
+                      "file_path": [
+                        "asset.txt",
+                        {}
+                      ]
                     }
                   }
-                ]
-              },
-              {}
-            ]
+                },
+                {
+                  "location": {},
+                  "key": null,
+                  "value": {
+                    "File": {
+                      "location": {},
+                      "output": true,
+                      "file_path": [
+                        "auto/generated.txt",
+                        {}
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
           }
         ],
         "directives": [

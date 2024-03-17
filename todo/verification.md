@@ -46,10 +46,9 @@
     * [ ] Assignment
 * Typed destructuring
   * [ ] `verify_typed_destructuring(&tdst, read_only, &properties_destination, &parent_definition, visibility, Some(context_type)): Result<(), DeferVerificationError>`
-
 * Statements
   * Block
-    * [ ] Parse plain meta-data
+    * [ ] Process meta-data
 
 * Program
   * [ ] Create and attach activation scope (contains function whose signature is `function(): void`)
@@ -67,10 +66,10 @@
 * [ ] Interfaces report duplicate error
 * [ ] `type` definitions report duplicate error
 
-## Plain meta-data
+## Meta-data
 
-* [ ] Process plain meta-data in definitions
-* [ ] Process plain meta-data in blocks by assigning to a `BlockStatementSymbol`
+* [ ] Process meta-data in definitions
+* [ ] Process meta-data in blocks by assigning to a `BlockStatementSymbol`
 
 ## Function definitions
 
