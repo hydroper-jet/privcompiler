@@ -45,7 +45,7 @@ impl<'a> SymbolFactory<'a> {
             name,
             visibility: Cell::new(Visibility::Internal),
             parent: RefCell::new(None),
-            representation_type: RefCell::new(None),
+            numeric_type: RefCell::new(None),
             is_set_enumeration,
             static_properties: SharedMap::new(),
             prototype: SharedMap::new(),

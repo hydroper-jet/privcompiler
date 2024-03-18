@@ -821,29 +821,29 @@ impl Symbol {
         }
     }
 
-    /// Enumeration representation type. It may be `Unresolved` in certain occasions.
+    /// Enumeration numeric type. It may be `Unresolved` in certain occasions.
     /// 
     /// **Default**: `None`.
-    pub fn enumeration_representation_type(&self) -> Option<Symbol> {
+    pub fn enumeration_numeric_type(&self) -> Option<Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::EnumType(data)) => {
-                let EnumTypeData { ref representation_type, .. } = data.as_ref();
-                representation_type.borrow().clone()
+                let EnumTypeData { ref numeric_type, .. } = data.as_ref();
+                numeric_type.borrow().clone()
             },
             _ => panic!(),
         }
     }
 
-    /// Enumeration representation type. It may be `Unresolved` in certain occasions.
+    /// Enumeration numeric type. It may be `Unresolved` in certain occasions.
     ///
     /// **Default**: `None`.
-    pub fn set_enumeration_representation_type(&self, value: Option<&Symbol>) {
+    pub fn set_enumeration_numeric_type(&self, value: Option<&Symbol>) {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::EnumType(data)) => {
-                let EnumTypeData { ref representation_type, .. } = data.as_ref();
-                representation_type.replace(value.map(|t| t.clone()));
+                let EnumTypeData { ref numeric_type, .. } = data.as_ref();
+                numeric_type.replace(value.map(|t| t.clone()));
             },
             _ => panic!(),
         }
@@ -2326,7 +2326,7 @@ impl Symbol {
         } else if self == &host.char_type() {
             Some(host.factory().create_char_constant('\x00', self))
         } else if self.is_enum_type() && self.is_set_enumeration() {
-            let v = AbstractRangeNumber::zero(&self.enumeration_representation_type().unwrap(), host);
+            let v = AbstractRangeNumber::zero(&self.enumeration_numeric_type().unwrap(), host);
             Some(host.factory().create_enum_constant(v, self))
         } else {
             None
@@ -2777,7 +2777,7 @@ pub(crate) struct EnumTypeData {
     pub name: String,
     pub visibility: Cell<Visibility>,
     pub parent: RefCell<Option<Symbol>>,
-    pub representation_type: RefCell<Option<Symbol>>,
+    pub numeric_type: RefCell<Option<Symbol>>,
     pub is_set_enumeration: bool,
     pub static_properties: SharedMap<String, Symbol>,
     pub prototype: SharedMap<String, Symbol>,
@@ -3201,8 +3201,8 @@ impl Deref for ClassType {
 /// * `fully_qualified_name()`
 /// * `to_string()`
 /// * `is_set_enumeration()`
-/// * `enumeration_representation_type()`
-/// * `set_enumeration_representation_type()`
+/// * `enumeration_numeric_type()`
+/// * `set_enumeration_numeric_type()`
 /// * `name()` — Unqualified name.
 /// * `parent()`
 /// * `set_parent()`

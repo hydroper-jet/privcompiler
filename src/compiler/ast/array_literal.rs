@@ -65,7 +65,7 @@ impl ArrayLiteral {
         } else if context_type_non_null.is_enum_type() && context_type_non_null.is_set_enumeration() {
             let mut elision_found = false;
             let enum_type = context_type_non_null.clone();
-            let repr_type = enum_type.enumeration_representation_type().unwrap();
+            let repr_type = enum_type.enumeration_numeric_type().unwrap();
             repr_type.throw_if_unresolved()?;
             let mut c = AbstractRangeNumber::zero(&repr_type, &verifier.host);
             let mut is_const = false;

@@ -105,7 +105,7 @@ impl ObjectInitializer {
 
     fn verify_set_enum(&self, verifier: &mut VerifierVerifier, context_type: &Symbol) -> Result<Option<Symbol>, DeferVerificationError> {
         let enum_type = context_type.non_null_type();
-        let repr_type = enum_type.enumeration_representation_type().unwrap();
+        let repr_type = enum_type.enumeration_numeric_type().unwrap();
         repr_type.throw_if_unresolved()?;
         let mut c = AbstractRangeNumber::zero(&repr_type, &verifier.host);
         let mut is_const = false;

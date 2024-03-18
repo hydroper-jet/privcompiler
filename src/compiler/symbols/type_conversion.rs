@@ -48,7 +48,7 @@ impl<'a> TypeConversions<'a> {
             if target_type.is_nullable_type() {
                 return Some(self.0.factory().create_null_constant(target_type));
             } else if target_type.is_enum_type() && target_type.is_set_enumeration() {
-                let rt = target_type.enumeration_representation_type().unwrap();
+                let rt = target_type.enumeration_numeric_type().unwrap();
                 if rt.is_unresolved() {
                     return None;
                 }
@@ -261,7 +261,7 @@ impl<'a> TypeConversions<'a> {
         }
 
         // From number to enum
-        if target_type_non_null.is_enum_type() && from_type == target_type_non_null.enumeration_representation_type().unwrap() {
+        if target_type_non_null.is_enum_type() && from_type == target_type_non_null.enumeration_numeric_type().unwrap() {
             return Some(self.0.factory().create_conversion_value(value, TypeConversionRelationship::FromNumberToEnum, optional, target_type));
         }
 
