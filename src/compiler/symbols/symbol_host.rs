@@ -1,6 +1,4 @@
 use crate::ns::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct SymbolHost {
     pub(crate) arena: Arena<SymbolKind>,
@@ -48,6 +46,7 @@ pub struct SymbolHost {
     pub(crate) byte_array_type: RefCell<Option<Symbol>>,
     pub(crate) reg_exp_type: RefCell<Option<Symbol>>,
     pub(crate) iterator_type: RefCell<Option<Symbol>>,
+    pub(crate) promise_type: RefCell<Option<Symbol>>,
 
     pub(crate) infinity_constant: RefCell<Option<Symbol>>,
     pub(crate) nan_constant: RefCell<Option<Symbol>>,
@@ -122,6 +121,7 @@ impl SymbolHost {
             byte_array_type: RefCell::new(None),
             reg_exp_type: RefCell::new(None),
             iterator_type: RefCell::new(None),
+            promise_type: RefCell::new(None),
 
             infinity_constant: RefCell::new(None),
             nan_constant: RefCell::new(None),
@@ -435,13 +435,26 @@ impl SymbolHost {
         }
     }
 
-    /// The `jet.lang.Iterator` class, possibly `Unresolved`.
+    /// The `jet.lang.Iterator` interface, possibly `Unresolved`.
     pub fn iterator_type(&self) -> Symbol {
         if let Some(r) = self.iterator_type.borrow().as_ref() {
             return r.clone();
         }
         if let Some(r) = self.lookup_at_jet_lang("Iterator") {
             self.iterator_type.replace(Some(r.clone()));
+            r
+        } else {
+            self.unresolved()
+        }
+    }
+
+    /// The `jet.lang.Promise` class, possibly `Unresolved`.
+    pub fn promise_type(&self) -> Symbol {
+        if let Some(r) = self.promise_type.borrow().as_ref() {
+            return r.clone();
+        }
+        if let Some(r) = self.lookup_at_jet_lang("Promise") {
+            self.promise_type.replace(Some(r.clone()));
             r
         } else {
             self.unresolved()

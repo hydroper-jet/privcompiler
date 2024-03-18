@@ -2427,6 +2427,20 @@ impl Symbol {
         }
     }
 
+    /// If a type is `Promise.<T>`, returns `T`, either as an origin type parameter
+    /// or as a substitute type.
+    pub fn promise_result_type(&self, host: &SymbolHost) -> Result<Option<Symbol>, DeferVerificationError> {
+        let promise_type = host.promise_type();
+        promise_type.throw_if_unresolved()?;
+        if self == &promise_type {
+            Ok(Some(promise_type.type_parameters().unwrap().get(0).unwrap()))
+        } else if self.type_after_substitution_has_origin(&promise_type) {
+            Ok(Some(self.substitute_types().get(0).unwrap()))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub(crate) fn not_overriden_abstract_getter(&self, getter_from_base_class: &Symbol, subclass: &Symbol, host: &SymbolHost) -> bool {
         if getter_from_base_class.is_abstract() {
             let prop2 = subclass.prototype(host).get(&getter_from_base_class.name());

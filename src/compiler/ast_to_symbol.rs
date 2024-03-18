@@ -1,8 +1,5 @@
 use crate::ns::*;
 use by_address::ByAddress;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
 
 /// Structure that assigns semantic symbols to AST nodes.
 pub struct AstToSymbol {

@@ -72,7 +72,7 @@ impl ObjectInitializer {
                     if let Some(name) = field.shorthand() {
                         let short_ref = Self::resolve_shorthand(verifier, &name)?;
                         if let Some(short_ref_1) = short_ref {
-                            if TypeConversions(&verifier.host).implicit_conversion(&short_ref_1, v_t, false).is_none() {
+                            if TypeConversions(&verifier.host).implicit_conversion(&short_ref_1, v_t, false)?.is_none() {
                                 verifier.add_verify_error(&name.1, DiagnosticKind::IncompatibleTypes, diagnostic_arguments![Symbol(v_t.clone()), Symbol(short_ref_1.static_type(&verifier.host))]);
                             }
                         }
@@ -129,7 +129,7 @@ impl ObjectInitializer {
                     if let Some(name) = field.shorthand() {
                         let mut short_ref = Self::resolve_shorthand(verifier, &name)?;
                         if let Some(short_ref_1) = short_ref.as_ref() {
-                            if TypeConversions(&verifier.host).implicit_conversion(short_ref_1, &boolean_type, false).is_none() {
+                            if TypeConversions(&verifier.host).implicit_conversion(short_ref_1, &boolean_type, false)?.is_none() {
                                 verifier.add_verify_error(&name.1, DiagnosticKind::IncompatibleTypes, diagnostic_arguments![Symbol(boolean_type.clone()), Symbol(short_ref_1.static_type(&verifier.host))]);
                                 short_ref = None;
                             }
@@ -236,7 +236,7 @@ impl ObjectInitializer {
                             if let Some(variable) = variable {
                                 let variable_data_type = variable.static_type(&verifier.host);
                                 variable_data_type.throw_if_unresolved()?;
-                                if TypeConversions(&verifier.host).implicit_conversion(short_ref_1, &variable_data_type, false).is_none() {
+                                if TypeConversions(&verifier.host).implicit_conversion(short_ref_1, &variable_data_type, false)?.is_none() {
                                     verifier.add_verify_error(&name.1, DiagnosticKind::IncompatibleTypes, diagnostic_arguments![Symbol(variable_data_type), Symbol(short_ref_1.static_type(&verifier.host))]);
                                     #[allow(unused_assignments)] {
                                         short_ref = None;

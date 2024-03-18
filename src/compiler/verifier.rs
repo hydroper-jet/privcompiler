@@ -268,7 +268,7 @@ impl VerifierVerifier {
         }
         let v = v.unwrap();
         let got_type = v.static_type(&self.host);
-        let v = TypeConversions(&self.host).implicit_conversion(&v, limit_type, false);
+        let v = TypeConversions(&self.host).implicit_conversion(&v, limit_type, false)?;
         if v.is_none() {
             self.add_verify_error(&exp.location(), DiagnosticKind::IncompatibleTypes, diagnostic_arguments![Symbol(got_type), Symbol(limit_type.clone())]);
             self.ast_to_symbol.set(exp, None);
