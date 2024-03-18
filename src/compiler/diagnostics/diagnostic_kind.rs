@@ -49,7 +49,7 @@ pub enum DiagnosticKind {
     AccessingPropertyOfVoidBase = 1069,
     AccessingPropertyOfNullableBase = 1070,
     InaccessibleProperty = 1071,
-    TypeParameterizedPropertyMustBeArgumented = 1072,
+    ParameterizedTypeMustBeArgumented = 1072,
     UnrecognizedEmbedExpressionField = 1073,
     MustResolveToType = 1074,
     EmbedSourceOrTypeNotSpecified = 1075,

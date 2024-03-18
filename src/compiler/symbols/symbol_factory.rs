@@ -393,7 +393,6 @@ impl<'a> SymbolFactory<'a> {
             jetdoc: RefCell::new(None),
             flags: RefCell::new(FunctionSymbolFlags::empty()),
             signature: RefCell::new(signature.clone()),
-            type_parameters: RefCell::new(None),
             of_virtual_property: RefCell::new(None),
             overriden_by: SharedArray::new(),
             overrides_method: RefCell::new(None),
@@ -401,44 +400,44 @@ impl<'a> SymbolFactory<'a> {
         }))))
     }
 
-    /// Creates an interned function after explicit or indirect type substitution.
-    pub fn create_function_after_explicit_or_indirect_type_substitution(&self, origin: &Symbol, explicit_or_indirect_type_parameters: &SharedArray<Symbol>, explicit_or_indirect_substitute_types: &SharedArray<Symbol>) -> Symbol {
+    /// Creates an interned function after indirect type substitution.
+    pub fn create_function_after_indirect_type_substitution(&self, origin: &Symbol, indirect_type_parameters: &SharedArray<Symbol>, indirect_substitute_types: &SharedArray<Symbol>) -> Symbol {
         // Verify parameter count
-        assert_eq!(explicit_or_indirect_type_parameters.length(), explicit_or_indirect_substitute_types.length());
+        assert_eq!(indirect_type_parameters.length(), indirect_substitute_types.length());
 
-        let mut faeoits_list = self.host.faeoits.borrow_mut();
+        let mut faits_list = self.host.faits.borrow_mut();
 
-        let mut base_list = faeoits_list.get_mut(origin);
+        let mut base_list = faits_list.get_mut(origin);
         let mut empty_base_list = HashMap::<SharedArray<Symbol>, Vec<Symbol>>::new();
         if base_list.is_none() {
             base_list = Some(&mut empty_base_list);
-            faeoits_list.insert(origin.clone(), HashMap::new());
+            faits_list.insert(origin.clone(), HashMap::new());
         }
         let base_list = base_list.unwrap();
 
-        let mut list = base_list.get(explicit_or_indirect_type_parameters);
+        let mut list = base_list.get(indirect_type_parameters);
         let empty_list = vec![];
         if list.is_none() {
             list = Some(&empty_list);
-            base_list.insert(explicit_or_indirect_type_parameters.clone(), vec![]);
+            base_list.insert(indirect_type_parameters.clone(), vec![]);
         }
-        'faeoits: for faeoits in list.unwrap() {
-            let mut substitute_types_1 = explicit_or_indirect_substitute_types.iter();
-            let substitute_types_2 = faeoits.explicit_or_indirect_substitute_types();
+        'faits: for faits in list.unwrap() {
+            let mut substitute_types_1 = indirect_substitute_types.iter();
+            let substitute_types_2 = faits.indirect_substitute_types();
             let mut substitute_types_2 = substitute_types_2.iter();
             while let Some(substitute_type_1) = substitute_types_1.next() {
                 let substitute_type_2 = substitute_types_2.next().unwrap();
                 if substitute_type_1 != substitute_type_2 {
-                    continue 'faeoits;
+                    continue 'faits;
                 }
             }
-            return faeoits.clone();
+            return faits.clone();
         }
 
-        let faeoits = Symbol(self.host.arena.allocate(SymbolKind::FunctionAfterExplicitOrIndirectTypeSubstitution(Rc::new(FunctionAfterExplicitOrIndirectTypeSubstitutionData {
+        let faits = Symbol(self.host.arena.allocate(SymbolKind::FunctionAfterIndirectTypeSubstitution(Rc::new(FunctionAfterIndirectTypeSubstitutionData {
             origin: origin.clone(),
-            explicit_or_indirect_type_parameters: explicit_or_indirect_type_parameters.clone(),
-            explicit_or_indirect_substitute_types: explicit_or_indirect_substitute_types.clone(),
+            indirect_type_parameters: indirect_type_parameters.clone(),
+            indirect_substitute_types: indirect_substitute_types.clone(),
             signature: RefCell::new(None),
             of_virtual_property: RefCell::new(None),
             overriden_by: RefCell::new(None),
@@ -446,10 +445,10 @@ impl<'a> SymbolFactory<'a> {
             is_overriding: Cell::new(origin.is_overriding()),
         }))));
 
-        let list = faeoits_list.get_mut(origin).unwrap().get_mut(&explicit_or_indirect_type_parameters).unwrap();
-        list.push(faeoits.clone());
+        let list = faits_list.get_mut(origin).unwrap().get_mut(&indirect_type_parameters).unwrap();
+        list.push(faits.clone());
 
-        faeoits
+        faits
     }
 
     pub fn create_scope(&self) -> Symbol {

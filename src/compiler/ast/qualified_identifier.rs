@@ -108,8 +108,8 @@ impl QualifiedIdentifier {
             let p = r.property();
 
             // Require type arguments
-            if (p.is_origin_function() || p.is_origin_class_type() || p.is_origin_interface_type()) && p.type_parameters().is_some() && !context.followed_by_type_arguments {
-                verifier.add_verify_error(&self.location, DiagnosticKind::TypeParameterizedPropertyMustBeArgumented, diagnostic_arguments![]);
+            if (p.is_origin_class_type() || p.is_origin_interface_type()) && p.type_parameters().is_some() && !context.followed_by_type_arguments {
+                verifier.add_verify_error(&self.location, DiagnosticKind::ParameterizedTypeMustBeArgumented, diagnostic_arguments![]);
             }
 
             // Compile-time constant

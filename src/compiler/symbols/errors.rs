@@ -18,8 +18,6 @@ pub enum PropertyResolutionError {
 pub enum MethodOverridingError {
     DeferVerification,
     MustOverrideAMethod,
-    CannotOverrideTypeParameterizedMethod,
-    CannotIntroduceTypeParameters,
     IncompatibleSignature {
         expected_signature: Symbol,
         actual_signature: Symbol,

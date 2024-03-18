@@ -369,8 +369,8 @@ impl ObjectInitializer {
             let p = r.property();
 
             // Require type arguments
-            if (p.is_origin_function() || p.is_origin_class_type() || p.is_origin_interface_type()) && p.type_parameters().is_some() {
-                verifier.add_verify_error(&name.1, DiagnosticKind::TypeParameterizedPropertyMustBeArgumented, diagnostic_arguments![]);
+            if (p.is_origin_class_type() || p.is_origin_interface_type()) && p.type_parameters().is_some() {
+                verifier.add_verify_error(&name.1, DiagnosticKind::ParameterizedTypeMustBeArgumented, diagnostic_arguments![]);
             }
         }
 

@@ -80,51 +80,22 @@ impl<'a> InterfaceImplementations<'a> {
                         log.push(InterfaceImplementationLog::PropertyMustBeMethod { name: name.clone() });
                     }
 
-                    if item.type_parameters().is_some() {
-                        // Type parameterized method
-                        if self.conforming_type_parameters(&item.type_parameters().unwrap(), implementor_item.type_parameters()) {
-                            let expected_signature = item.signature(self.0).type_substitution(self.0, &item.type_parameters().unwrap(), &implementor_item.type_parameters().unwrap());
-                            expected_signature.throw_if_unresolved().map_err(|_| DeferVerificationError)?;
- 
-                            let actual_signature = implementor_item.signature(self.0);
-                            actual_signature.throw_if_unresolved().map_err(|_| DeferVerificationError)?;
+                    let expected_signature = item.signature(self.0);
+                    expected_signature.throw_if_unresolved().map_err(|_| DeferVerificationError)?;
 
-                            if expected_signature != actual_signature {
-                                log.push(InterfaceImplementationLog::WrongMethodSignature {
-                                    name: name.clone(), expected_signature,
-                                });
-                            }
-                        } else {
-                            log.push(InterfaceImplementationLog::NonConformingTypeParameters { name: name.clone() });
-                        }
-                    } else if implementor_item.type_parameters().is_some() {
-                        log.push(InterfaceImplementationLog::NonConformingTypeParameters { name: name.clone() });
-                    } else {
-                        let expected_signature = item.signature(self.0);
-                        expected_signature.throw_if_unresolved().map_err(|_| DeferVerificationError)?;
- 
-                        let actual_signature = implementor_item.signature(self.0);
-                        actual_signature.throw_if_unresolved().map_err(|_| DeferVerificationError)?;
+                    let actual_signature = implementor_item.signature(self.0);
+                    actual_signature.throw_if_unresolved().map_err(|_| DeferVerificationError)?;
 
-                        if expected_signature != actual_signature {
-                            log.push(InterfaceImplementationLog::WrongMethodSignature {
-                                name: name.clone(), expected_signature,
-                            });
-                        }
+                    if expected_signature != actual_signature {
+                        log.push(InterfaceImplementationLog::WrongMethodSignature {
+                            name: name.clone(), expected_signature,
+                        });
                     }
                 }
             }
         }
 
         Ok(log)
-    }
-
-    fn conforming_type_parameters(&mut self, type_parameters_1: &SharedArray<Symbol>, type_parameters_2: Option<SharedArray<Symbol>>) -> bool {
-        if type_parameters_2.is_none() {
-            return false;
-        }
-        let type_parameters_2 = type_parameters_2.unwrap();
-        type_parameters_1.length() == type_parameters_2.length()
     }
 }
 
@@ -138,5 +109,4 @@ pub enum InterfaceImplementationLog {
     WrongGetterSignature { name: String, expected_signature: Symbol },
     WrongSetterSignature { name: String, expected_signature: Symbol },
     WrongVisibility { name: String, expected_visibility: Visibility },
-    NonConformingTypeParameters { name: String },
 }

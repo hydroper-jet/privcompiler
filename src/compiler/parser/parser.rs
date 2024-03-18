@@ -3131,11 +3131,6 @@ impl<'input> Parser<'input> {
         } else {
             FunctionName::Identifier(name)
         };
-        let type_parameters = if !(has_proxy || constructor || getter || setter) {
-            self.parse_type_parameters_opt()?
-        } else {
-            None
-        };
         let block_context = if constructor {
             ParsingDirectiveContext::ConstructorBlock { super_statement_found: Cell::new(false) }
         } else {
@@ -3231,7 +3226,6 @@ impl<'input> Parser<'input> {
             jetdoc,
             attributes,
             name: name.clone(),
-            type_parameters,
             common,
         }));
 

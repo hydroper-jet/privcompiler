@@ -25,7 +25,7 @@ pub struct SymbolHost {
     /// Virtual properties after indirect type substitution.
     pub(crate) vipaits: RefCell<HashMap<Symbol, HashMap<SharedArray<Symbol>, Vec<Symbol>>>>,
     /// Functions after explicit or indirect type substitution.
-    pub(crate) faeoits: RefCell<HashMap<Symbol, HashMap<SharedArray<Symbol>, Vec<Symbol>>>>,
+    pub(crate) faits: RefCell<HashMap<Symbol, HashMap<SharedArray<Symbol>, Vec<Symbol>>>>,
 
     pub(crate) top_level_package: Symbol,
     pub(crate) jet_lang_package: RefCell<Option<Symbol>>,
@@ -97,7 +97,7 @@ impl SymbolHost {
             taets: RefCell::new(HashMap::new()),
             vapaits: RefCell::new(HashMap::new()),
             vipaits: RefCell::new(HashMap::new()),
-            faeoits: RefCell::new(HashMap::new()),
+            faits: RefCell::new(HashMap::new()),
 
             top_level_package,
 

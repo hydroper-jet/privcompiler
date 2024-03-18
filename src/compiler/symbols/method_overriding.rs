@@ -77,14 +77,6 @@ impl<'a> MethodOverriding<'a> {
             return Err(MethodOverridingError::MustOverrideAMethod);
         }
 
-        if base_method.type_parameters().is_some() {
-            return Err(MethodOverridingError::CannotOverrideTypeParameterizedMethod);
-        }
-
-        if method.type_parameters().is_some() {
-            return Err(MethodOverridingError::CannotIntroduceTypeParameters);
-        }
-
         // Retrieve base type method's signature. Throw if unresolved.
         let base_signature = base_method.signature(self.0);
         base_signature.throw_if_unresolved().map_err(|_| MethodOverridingError::DeferVerification)?;
