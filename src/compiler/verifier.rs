@@ -149,13 +149,13 @@ impl VerifierVerifier {
     pub fn enter_scope(&mut self, scope: &Symbol) {
         let k = self.scope.clone();
         self.scope = scope.clone();
-        if scope.parent_scope().is_none() {
-            scope.set_parent_scope(Some(&k));
+        if scope.parent().is_none() {
+            scope.set_parent(Some(&k));
         }
     }
 
     pub fn exit_scope(&mut self) {
-        self.scope = self.scope.parent_scope().unwrap();
+        self.scope = self.scope.parent().unwrap();
     }
 
     pub fn verify_expression(&mut self, exp: &Rc<Expression>, context: &ExpressionVerifyContext) -> Result<Option<Symbol>, DeferVerificationError> {

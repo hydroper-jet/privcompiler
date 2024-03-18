@@ -370,8 +370,8 @@ impl<'a> PropertyResolution<'a> {
             r = amb;
         }
 
-        // 12. If r is undefined and base[[ParentScope]] is not undefined
-        let parent_scope = base.parent_scope();
+        // 12. If r is undefined and base[[Parent]] is not undefined
+        let parent_scope = base.parent();
         if r.is_none() && parent_scope.is_some() {
             return self.resolve_scope_property(&parent_scope.unwrap(), qual, key, disamb);
         }

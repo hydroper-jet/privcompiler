@@ -4,7 +4,7 @@ pub struct InterfaceImplementations<'a>(pub &'a SymbolHost);
 
 impl<'a> InterfaceImplementations<'a> {
     pub fn verify(&mut self, implementor: &Symbol, interface: &Symbol) -> Result<Vec<InterfaceImplementationLog>, DeferVerificationError> {
-        let at_package = implementor.parent_definition().unwrap().is_package();
+        let at_package = implementor.parent().unwrap().is_package();
         let expected_visibility = if at_package { Visibility::Public } else { Visibility::Internal };
 
         let mut interfaces = interface.all_ascending_types(self.0);

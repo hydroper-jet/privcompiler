@@ -42,7 +42,7 @@ impl<'a> MethodOverriding<'a> {
 
     pub fn override_method(&mut self, method: &Symbol) -> Result<(), MethodOverridingError> {
         let name = method.name();
-        let class = method.parent_definition().unwrap();
+        let class = method.parent().unwrap();
         assert!(class.is_class_type() || class.is_enum_type());
 
         let base_type = class.extends_class(self.0);

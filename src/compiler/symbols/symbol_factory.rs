@@ -24,7 +24,7 @@ impl<'a> SymbolFactory<'a> {
         Symbol(self.host.arena.allocate(SymbolKind::Type(TypeKind::ClassType(Rc::new(ClassTypeData {
             name,
             visibility: Cell::new(Visibility::Internal),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             extends_class: RefCell::new(None),
             implements: SharedArray::new(),
             flags: RefCell::new(ClassTypeFlags::empty()),
@@ -44,7 +44,7 @@ impl<'a> SymbolFactory<'a> {
         Symbol(self.host.arena.allocate(SymbolKind::Type(TypeKind::EnumType(Rc::new(EnumTypeData {
             name,
             visibility: Cell::new(Visibility::Internal),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             representation_type: RefCell::new(None),
             is_set_enumeration,
             static_properties: SharedMap::new(),
@@ -61,7 +61,7 @@ impl<'a> SymbolFactory<'a> {
         Symbol(self.host.arena.allocate(SymbolKind::Type(TypeKind::InterfaceType(Rc::new(InterfaceTypeData {
             name,
             visibility: Cell::new(Visibility::Internal),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             extends_interfaces: SharedArray::new(),
             type_parameters: RefCell::new(None),
             prototype: SharedMap::new(),
@@ -213,7 +213,7 @@ impl<'a> SymbolFactory<'a> {
             name,
             visibility: Cell::new(Visibility::Internal),
             alias_of: RefCell::new(alias_of.clone()),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         }))))
@@ -240,7 +240,7 @@ impl<'a> SymbolFactory<'a> {
             } else {
                 let result_1 = Symbol(self.host.arena.allocate(SymbolKind::Package(Rc::new(PackageData {
                     name: name_1.clone(),
-                    parent_definition: RefCell::new(Some(result.clone())),
+                    parent: RefCell::new(Some(result.clone())),
                     properties: SharedMap::new(),
                     redirect_packages: SharedArray::new(),
                     subpackages: SharedMap::new(),
@@ -256,7 +256,7 @@ impl<'a> SymbolFactory<'a> {
     pub fn create_package_set(&self, name: String, packages: SharedArray<Symbol>) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::PackageSet(Rc::new(PackageSetData {
             name,
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             packages,
             visibility: Cell::new(Visibility::Internal),
             jetdoc: RefCell::new(None),
@@ -270,7 +270,7 @@ impl<'a> SymbolFactory<'a> {
             read_only: Cell::new(read_only),
             static_type: RefCell::new(static_type.clone()),
             constant_initializer: RefCell::new(None),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
         }))))
@@ -330,7 +330,7 @@ impl<'a> SymbolFactory<'a> {
             static_type: RefCell::new(None),
             getter: RefCell::new(None),
             setter: RefCell::new(None),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             jetdoc: RefCell::new(None),
         }))))
     }
@@ -388,7 +388,7 @@ impl<'a> SymbolFactory<'a> {
         Symbol(self.host.arena.allocate(SymbolKind::Function(Rc::new(FunctionSymbolData {
             name,
             visibility: Cell::new(Visibility::Internal),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
             flags: RefCell::new(FunctionSymbolFlags::empty()),
@@ -454,7 +454,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_scope(&self) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -465,7 +465,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_with_scope(&self, object: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -478,7 +478,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_filter_operator_scope(&self, base: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -491,7 +491,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_activation_scope(&self, function: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -506,7 +506,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_class_scope(&self, class: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -519,7 +519,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_enum_scope(&self, class: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -532,7 +532,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_interface_scope(&self, interface: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),
@@ -545,7 +545,7 @@ impl<'a> SymbolFactory<'a> {
 
     pub fn create_package_scope(&self, package: &Symbol) -> Symbol {
         Symbol(self.host.arena.allocate(SymbolKind::Scope(Rc::new(ScopeData {
-            parent_scope: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             imports: SharedMap::new(),
             open_packages: SharedArray::new(),

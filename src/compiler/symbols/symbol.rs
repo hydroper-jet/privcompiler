@@ -448,7 +448,7 @@ impl Symbol {
             if !name.is_empty() {
                 r.insert(0, name);
             }
-            p = p1.parent_definition();
+            p = p1.parent();
         }
         r
     }
@@ -726,55 +726,59 @@ impl Symbol {
         }
     }
 
-    pub fn parent_definition(&self) -> Option<Symbol> {
+    pub fn parent(&self) -> Option<Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Type(TypeKind::ClassType(data)) => data.parent_definition.borrow().clone(),
-            SymbolKind::Type(TypeKind::EnumType(data)) => data.parent_definition.borrow().clone(),
-            SymbolKind::Type(TypeKind::InterfaceType(data)) => data.parent_definition.borrow().clone(),
-            SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.parent_definition(),
-            SymbolKind::Alias(data) => data.parent_definition.borrow().clone(),
-            SymbolKind::Package(data) => data.parent_definition.borrow().clone(),
-            SymbolKind::PackageSet(data) => data.parent_definition.borrow().clone(),
-            SymbolKind::VariableProperty(data) => data.parent_definition.borrow().clone(),
-            SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.parent_definition(),
-            SymbolKind::VirtualProperty(data) => data.parent_definition.borrow().clone(),
-            SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.parent_definition(),
-            SymbolKind::Function(data) => data.parent_definition.borrow().clone(),
-            SymbolKind::FunctionAfterExplicitOrIndirectTypeSubstitution(data) => data.origin.parent_definition(),
+            SymbolKind::Type(TypeKind::ClassType(data)) => data.parent.borrow().clone(),
+            SymbolKind::Type(TypeKind::EnumType(data)) => data.parent.borrow().clone(),
+            SymbolKind::Type(TypeKind::InterfaceType(data)) => data.parent.borrow().clone(),
+            SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.parent(),
+            SymbolKind::Alias(data) => data.parent.borrow().clone(),
+            SymbolKind::Package(data) => data.parent.borrow().clone(),
+            SymbolKind::PackageSet(data) => data.parent.borrow().clone(),
+            SymbolKind::VariableProperty(data) => data.parent.borrow().clone(),
+            SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.parent(),
+            SymbolKind::VirtualProperty(data) => data.parent.borrow().clone(),
+            SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.parent(),
+            SymbolKind::Function(data) => data.parent.borrow().clone(),
+            SymbolKind::FunctionAfterExplicitOrIndirectTypeSubstitution(data) => data.origin.parent(),
+            SymbolKind::Scope(data, _) => data.parent.borrow().clone(),
             _ => None,
         }
     }
 
-    pub fn set_parent_definition(&self, value: Option<&Symbol>) {
+    pub fn set_parent(&self, value: Option<&Symbol>) {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::ClassType(data)) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::Type(TypeKind::EnumType(data)) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::Type(TypeKind::InterfaceType(data)) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::Alias(data) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::Package(data) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::PackageSet(data) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::VariableProperty(data) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::VirtualProperty(data) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
             },
             SymbolKind::Function(data) => {
-                data.parent_definition.replace(value.map(|v| v.clone()));
+                data.parent.replace(value.map(|v| v.clone()));
+            },
+            SymbolKind::Scope(data, _) => {
+                data.parent.replace(value.map(|v| v.clone()));
             },
             _ => panic!(),
         }
@@ -1848,24 +1852,6 @@ impl Symbol {
         }
     }
 
-    pub fn parent_scope(&self) -> Option<Symbol> {
-        let symbol = self.0.upgrade().unwrap();
-        match symbol.as_ref() {
-            SymbolKind::Scope(data, _) => data.parent_scope.borrow().clone(),
-            _ => panic!(),
-        }
-    }
-
-    pub fn set_parent_scope(&self, value: Option<&Symbol>) {
-        let symbol = self.0.upgrade().unwrap();
-        match symbol.as_ref() {
-            SymbolKind::Scope(data, _) => {
-                data.parent_scope.replace(value.map(|v| v.clone()));
-            },
-            _ => panic!(),
-        }
-    }
-
     pub fn imports(&self) -> SharedMap<String, Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
@@ -2194,7 +2180,7 @@ impl Symbol {
             Visibility::Public => true,
             Visibility::Internal => {
                 let mut p: Option<Symbol> = None;
-                if let Some(p1) = prop.parent_definition() {
+                if let Some(p1) = prop.parent() {
                     for p1 in p1.descending_definition_hierarchy() {
                         if p1.is_package() {
                             p = Some(p1);
@@ -2215,7 +2201,7 @@ impl Symbol {
             },
             Visibility::Private => {
                 let mut t: Option<Symbol> = None;
-                if let Some(p) = prop.parent_definition() {
+                if let Some(p) = prop.parent() {
                     for p in p.descending_definition_hierarchy() {
                         if p.is_class_type() || p.is_enum_type() {
                             t = Some(p);
@@ -2236,7 +2222,7 @@ impl Symbol {
             },
             Visibility::Protected => {
                 let mut t: Option<Symbol> = None;
-                if let Some(p) = prop.parent_definition() {
+                if let Some(p) = prop.parent() {
                     for p in p.descending_definition_hierarchy() {
                         if p.is_class_type() || p.is_enum_type() {
                             t = Some(p);
@@ -2388,7 +2374,7 @@ impl Symbol {
         if self.is_type() && (self.is_void_type() || self.is_any_type() || self.is_function_type() || self.is_tuple_type() || self.is_nullable_type()) {
             return host.factory().create_type_as_reference_value(&self);
         }
-        let parent = self.parent_definition().unwrap();
+        let parent = self.parent().unwrap();
         if parent.is_class_type() || parent.is_enum_type() {
             return host.factory().create_static_reference_value(&parent, &self);
         }
@@ -2708,7 +2694,7 @@ impl Iterator for DescendingScopeHierarchy {
     type Item = Symbol;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(r) = self.0.clone() {
-            self.0 = r.parent_scope();
+            self.0 = r.parent();
             Some(r)
         } else {
             None
@@ -2722,7 +2708,7 @@ impl Iterator for DescendingDefinitionHierarchy {
     type Item = Symbol;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(r) = self.0.clone() {
-            self.0 = r.parent_definition();
+            self.0 = r.parent();
             Some(r)
         } else {
             None
@@ -2772,7 +2758,7 @@ pub(crate) enum TypeKind {
 pub(crate) struct ClassTypeData {
     pub name: String,
     pub visibility: Cell<Visibility>,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub extends_class: RefCell<Option<Symbol>>,
     pub implements: SharedArray<Symbol>,
     pub flags: RefCell<ClassTypeFlags>,
@@ -2790,7 +2776,7 @@ pub(crate) struct ClassTypeData {
 pub(crate) struct EnumTypeData {
     pub name: String,
     pub visibility: Cell<Visibility>,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub representation_type: RefCell<Option<Symbol>>,
     pub is_set_enumeration: bool,
     pub static_properties: SharedMap<String, Symbol>,
@@ -2805,7 +2791,7 @@ pub(crate) struct EnumTypeData {
 pub(crate) struct InterfaceTypeData {
     pub name: String,
     pub visibility: Cell<Visibility>,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub extends_interfaces: SharedArray<Symbol>,
     pub type_parameters: RefCell<Option<SharedArray<Symbol>>>,
     pub prototype: SharedMap<String, Symbol>,
@@ -2854,14 +2840,14 @@ pub(crate) struct AliasData {
     pub name: String,
     pub visibility: Cell<Visibility>,
     pub alias_of: RefCell<Symbol>,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub metadata: SharedArray<Rc<Metadata>>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
 }
 
 pub(crate) struct PackageData {
     pub name: String,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub properties: SharedMap<String, Symbol>,
     pub redirect_packages: SharedArray<Symbol>,
     pub subpackages: SharedMap<String, Symbol>,
@@ -2870,7 +2856,7 @@ pub(crate) struct PackageData {
 
 pub(crate) struct PackageSetData {
     pub name: String,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub visibility: Cell<Visibility>,
     pub packages: SharedArray<Symbol>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
@@ -2878,7 +2864,7 @@ pub(crate) struct PackageSetData {
 
 pub(crate) struct VariablePropertyData {
     pub name: String,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub visibility: Cell<Visibility>,
     pub static_type: RefCell<Symbol>,
     pub read_only: Cell<bool>,
@@ -2896,7 +2882,7 @@ pub(crate) struct VariablePropertyAfterIndirectTypeSubstitutionData {
 
 pub(crate) struct VirtualPropertyData {
     pub name: String,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub visibility: Cell<Visibility>,
     pub static_type: RefCell<Option<Symbol>>,
     pub getter: RefCell<Option<Symbol>>,
@@ -2915,7 +2901,7 @@ pub(crate) struct VirtualPropertyAfterIndirectTypeSubstitutionData {
 
 pub(crate) struct FunctionSymbolData {
     pub name: String,
-    pub parent_definition: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub visibility: Cell<Visibility>,
     pub flags: RefCell<FunctionSymbolFlags>,
     pub signature: RefCell<Symbol>,
@@ -2954,7 +2940,7 @@ pub(crate) struct FunctionAfterExplicitOrIndirectTypeSubstitutionData {
 }
 
 pub(crate) struct ScopeData {
-    pub parent_scope: RefCell<Option<Symbol>>,
+    pub parent: RefCell<Option<Symbol>>,
     pub properties: SharedMap<String, Symbol>,
     pub imports: SharedMap<String, Symbol>,
     pub open_packages: SharedArray<Symbol>,
@@ -3174,8 +3160,8 @@ impl Deref for VoidType {
 /// * `set_allow_literal()`
 /// * `implements()` — Implements list of the class.
 /// * `name()` — Unqualified name.
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `extends_class()`
 /// * `set_extends_class()`
 /// * `type_parameters()`
@@ -3218,8 +3204,8 @@ impl Deref for ClassType {
 /// * `enumeration_representation_type()`
 /// * `set_enumeration_representation_type()`
 /// * `name()` — Unqualified name.
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `extends_class()`
 /// * `static_properties()``
 /// * `prototype()`
@@ -3254,8 +3240,8 @@ impl Deref for EnumType {
 /// * `fully_qualified_name()`
 /// * `to_string()`
 /// * `name()` — Unqualified name.
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `extends_interfaces()` — Extends list of the interface.
 /// * `type_parameters()`
 /// * `set_type_parameters()`
@@ -3407,7 +3393,7 @@ impl Deref for TypeParameterType {
 /// * `implements()` — Implements list of a class.
 /// * `extends_interfaces()` — Extends list of an interface.
 /// * `name()` — Unqualified name.
-/// * `parent_definition()`
+/// * `parent()`
 /// * `extends_class()`
 /// * `static_properties()`
 /// * `constructor_function()`
@@ -3443,8 +3429,8 @@ impl Deref for TypeAfterExplicitTypeSubstitution {
 /// * `set_visibility()`
 /// * `alias_of()` — The aliased symbol, possibly `Unresolved`.
 /// * `set_alias_of()`
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `metadata()`
 /// * `jetdoc()`
 /// * `set_jetdoc()`
@@ -3467,8 +3453,8 @@ impl Deref for Alias {
 /// * `name()`
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `properties()`
 /// * `redirect_packages()`
 /// * `subpackages()`
@@ -3493,8 +3479,8 @@ impl Deref for Package {
 /// * `name()`
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `packages()`
@@ -3520,8 +3506,8 @@ impl Deref for PackageSet {
 /// * `name()`
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `static_type()`
@@ -3554,7 +3540,7 @@ impl Deref for VariableProperty {
 /// * `name()`
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
+/// * `parent()`
 /// * `origin()` — The original variable property.
 /// * `indirect_type_parameters()` — Type parameters from indirect symbol.
 /// * `indirect_substitute_types()` — Substitute types from indirect symbol.
@@ -3583,8 +3569,8 @@ impl Deref for VariablePropertyAfterIndirectTypeSubstitution {
 /// * `name()`
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `static_type()`
@@ -3620,7 +3606,7 @@ impl Deref for VirtualProperty {
 /// * `name()`
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
+/// * `parent()`
 /// * `visibility()`
 /// * `static_type()`
 /// * `read_only()`
@@ -3648,8 +3634,8 @@ impl Deref for VirtualPropertyAfterIndirectTypeSubstitution {
 /// * `name()` — The function name. The name may be empty for special functions.
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
-/// * `set_parent_definition()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `visibility()`
 /// * `set_visibility()`
 /// * `jetdoc()`
@@ -3704,7 +3690,7 @@ impl Deref for FunctionSymbol {
 /// * `name()` — The function name. The name may be empty for special functions.
 /// * `fully_qualified_name()`
 /// * `to_string()`
-/// * `parent_definition()`
+/// * `parent()`
 /// * `visibility()`
 /// * `jetdoc()`
 /// * `metadata()`
@@ -3741,8 +3727,8 @@ impl Deref for FunctionAfterExplicitOrIndirectTypeSubstitution {
 /// # Supported methods
 ///
 /// * `is_scope()`
-/// * `parent_scope()`
-/// * `set_parent_scope()`
+/// * `parent()`
+/// * `set_parent()`
 /// * `properties()`
 /// * `imports()`
 /// * `open_packages()`
@@ -3766,8 +3752,8 @@ impl Deref for Scope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`
@@ -3793,8 +3779,8 @@ impl Deref for WithScope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`
@@ -3823,8 +3809,8 @@ impl Deref for FilterOperatorScope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`
@@ -3855,8 +3841,8 @@ impl Deref for ActivationScope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`
@@ -3882,8 +3868,8 @@ impl Deref for ClassScope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`
@@ -3909,8 +3895,8 @@ impl Deref for EnumScope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`
@@ -3936,8 +3922,8 @@ impl Deref for InterfaceScope {
 ///
 /// * `Scope` inherited methods
 ///   * `is_scope()`
-///   * `parent_scope()`
-///   * `set_parent_scope()`
+///   * `parent()`
+///   * `set_parent()`
 ///   * `properties()`
 ///   * `imports()`
 ///   * `open_packages()`

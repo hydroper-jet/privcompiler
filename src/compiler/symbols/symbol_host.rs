@@ -64,7 +64,7 @@ impl SymbolHost {
 
         let top_level_package = Symbol(arena.allocate(SymbolKind::Package(Rc::new(PackageData {
             name: String::new(),
-            parent_definition: RefCell::new(None),
+            parent: RefCell::new(None),
             properties: SharedMap::new(),
             redirect_packages: SharedArray::new(),
             subpackages: SharedMap::new(),
