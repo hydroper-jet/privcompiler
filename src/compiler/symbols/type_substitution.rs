@@ -10,7 +10,7 @@ use crate::ns::*;
 /// * `Unresolved` is returned as is
 /// * Variable properties
 /// * Virtual properties
-/// * Function symbols
+/// * Method symbols
 /// 
 /// In the future, type substitution may expand to other symbols if necessary.
 pub struct TypeSubstitution<'a>(pub &'a SymbolHost);
@@ -47,7 +47,7 @@ impl<'a> TypeSubstitution<'a> {
             self.0.factory().create_variable_property_after_indirect_type_substitution(symbol, type_parameters, substitute_types)
         } else if symbol.is_virtual_property() {
             self.0.factory().create_virtual_property_after_indirect_type_substitution(symbol, type_parameters, substitute_types)
-        } else if symbol.is_function() {
+        } else if symbol.is_method() {
             self.0.factory().create_function_after_indirect_type_substitution(symbol, type_parameters, substitute_types)
         } else {
             panic!()

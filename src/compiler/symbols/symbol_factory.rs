@@ -385,13 +385,13 @@ impl<'a> SymbolFactory<'a> {
     }
 
     pub fn create_function(&self, name: String, signature: &Symbol) -> Symbol {
-        Symbol(self.host.arena.allocate(SymbolKind::Function(Rc::new(FunctionSymbolData {
+        Symbol(self.host.arena.allocate(SymbolKind::Function(Rc::new(MethodData {
             name,
             visibility: Cell::new(Visibility::Internal),
             parent: RefCell::new(None),
             metadata: SharedArray::new(),
             jetdoc: RefCell::new(None),
-            flags: RefCell::new(FunctionSymbolFlags::empty()),
+            flags: RefCell::new(MethodFlags::empty()),
             signature: RefCell::new(signature.clone()),
             of_virtual_property: RefCell::new(None),
             overriden_by: SharedArray::new(),
@@ -434,7 +434,7 @@ impl<'a> SymbolFactory<'a> {
             return faits.clone();
         }
 
-        let faits = Symbol(self.host.arena.allocate(SymbolKind::FunctionAfterIndirectTypeSubstitution(Rc::new(FunctionAfterIndirectTypeSubstitutionData {
+        let faits = Symbol(self.host.arena.allocate(SymbolKind::MethodAfterIndirectTypeSubstitution(Rc::new(MethodAfterIndirectTypeSubstitutionData {
             origin: origin.clone(),
             indirect_type_parameters: indirect_type_parameters.clone(),
             indirect_substitute_types: indirect_substitute_types.clone(),

@@ -15,10 +15,10 @@ impl<'a> MethodOverriding<'a> {
         let mut r: Vec<Symbol> = vec![];
         for (name, prop) in base_class.prototype(self.0).borrow().iter() {
             // Regular method
-            if prop.is_function() {
+            if prop.is_method() {
                 if prop.is_abstract() {
                     let prop2 = class.prototype(self.0).get(name);
-                    if prop2.is_none() || !prop2.unwrap().is_function() {
+                    if prop2.is_none() || !prop2.unwrap().is_method() {
                         r.push(prop.clone());
                     }
                 }
@@ -73,7 +73,7 @@ impl<'a> MethodOverriding<'a> {
                 base_method = base_method.setter(self.0).unwrap();
             }
         // Overriding a regular method
-        } else if !base_method.is_function() {
+        } else if !base_method.is_method() {
             return Err(MethodOverridingError::MustOverrideAMethod);
         }
 

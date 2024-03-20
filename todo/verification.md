@@ -83,7 +83,7 @@
 
 ## Function common
 
-* Map *FunctionCommon* to respective function symbol
+* Map *FunctionCommon* to respective method symbol
   * [ ] In function expressions
   * [ ] In function definitions
 

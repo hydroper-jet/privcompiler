@@ -76,7 +76,7 @@ impl<'a> InterfaceImplementations<'a> {
                 // Verify regular method
                 } else {
                     let implementor_item = implementor_item.unwrap();
-                    if !implementor_item.is_function() {
+                    if !implementor_item.is_method() {
                         log.push(InterfaceImplementationLog::PropertyMustBeMethod { name: name.clone() });
                     }
 

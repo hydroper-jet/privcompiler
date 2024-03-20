@@ -19,4 +19,4 @@ Open tabs:
 * compiler/src/compiler/diagnostics/diagnostic_kind.rs
 * compiler/src/compiler/diagnostics/diagnostics_english_resources.rs
 * compiler/src/compiler/verifier.rs
-* lang/spec/1.0/source/destructuring.md
+* lang/spec/1.0/source/language-syntax/destructuring.md

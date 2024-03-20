@@ -26,8 +26,8 @@
 * [x] `VariablePropertyAfterIndirectTypeSubstitution`
 * [x] `VirtualProperty`
 * [x] `VirtualPropertyAfterIndirectTypeSubstitution`
-* [x] `FunctionSymbol`
-* [x] `FunctionAfterIndirectTypeSubstitution`
+* [x] `Method`
+* [x] `MethodAfterIndirectTypeSubstitution`
 * [x] `Scope`
 * [x] Miscellaneous scopes
 * [x] `ImportMetaSymbol`

@@ -157,10 +157,10 @@ impl Symbol {
         matches!(self.0.upgrade().unwrap().as_ref(), SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(_))
     }
 
-    pub fn is_function(&self) -> bool {
+    pub fn is_method(&self) -> bool {
         matches!(
             self.0.upgrade().unwrap().as_ref(),
-            SymbolKind::Function(_) | SymbolKind::FunctionAfterIndirectTypeSubstitution(_)
+            SymbolKind::Function(_) | SymbolKind::MethodAfterIndirectTypeSubstitution(_)
         )
     }
 
@@ -168,8 +168,8 @@ impl Symbol {
         matches!(self.0.upgrade().unwrap().as_ref(), SymbolKind::Function(_))
     }
 
-    pub fn is_function_after_indirect_type_substitution(&self) -> bool {
-        matches!(self.0.upgrade().unwrap().as_ref(), SymbolKind::FunctionAfterIndirectTypeSubstitution(_))
+    pub fn is_method_after_indirect_type_substitution(&self) -> bool {
+        matches!(self.0.upgrade().unwrap().as_ref(), SymbolKind::MethodAfterIndirectTypeSubstitution(_))
     }
 
     pub fn is_scope(&self) -> bool {
@@ -428,7 +428,7 @@ impl Symbol {
             SymbolKind::VirtualProperty(data) => data.name.clone(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.name(),
             SymbolKind::Function(data) => data.name.clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.name(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.name(),
             _ => panic!(),
         }
     }
@@ -469,8 +469,8 @@ impl Symbol {
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::ClassType(data)) => data.flags.borrow().contains(ClassTypeFlags::IS_ABSTRACT),
             SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.is_abstract(),
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_ABSTRACT),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_abstract(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_ABSTRACT),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_abstract(),
             _ => panic!(),
         }
     }
@@ -482,7 +482,7 @@ impl Symbol {
                 data.flags.borrow_mut().set(ClassTypeFlags::IS_ABSTRACT, value);
             },
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_ABSTRACT, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_ABSTRACT, value);
             },
             _ => panic!(),
         }
@@ -493,8 +493,8 @@ impl Symbol {
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::ClassType(data)) => data.flags.borrow().contains(ClassTypeFlags::IS_FINAL) || data.flags.borrow().contains(ClassTypeFlags::ALLOW_LITERAL),
             SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.is_final(),
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_FINAL),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_final(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_FINAL),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_final(),
             _ => panic!(),
         }
     }
@@ -506,7 +506,7 @@ impl Symbol {
                 data.flags.borrow_mut().set(ClassTypeFlags::IS_FINAL, value);
             },
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_FINAL, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_FINAL, value);
             },
             _ => panic!(),
         }
@@ -553,8 +553,8 @@ impl Symbol {
     pub fn is_generator(&self) -> bool {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_GENERATOR),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_generator(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_GENERATOR),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_generator(),
             _ => panic!(),
         }
     }
@@ -563,7 +563,7 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_GENERATOR, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_GENERATOR, value);
             },
             _ => panic!(),
         }
@@ -572,8 +572,8 @@ impl Symbol {
     pub fn is_async(&self) -> bool {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_ASYNC),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_async(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_ASYNC),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_async(),
             _ => panic!(),
         }
     }
@@ -582,7 +582,7 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_ASYNC, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_ASYNC, value);
             },
             _ => panic!(),
         }
@@ -591,8 +591,8 @@ impl Symbol {
     pub fn is_native(&self) -> bool {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_NATIVE),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_native(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_NATIVE),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_native(),
             _ => panic!(),
         }
     }
@@ -601,7 +601,7 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_NATIVE, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_NATIVE, value);
             },
             _ => panic!(),
         }
@@ -610,8 +610,8 @@ impl Symbol {
     pub fn is_optional_interface_method(&self) -> bool {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_OPTIONAL_INTERFACE_METHOD),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_optional_interface_method(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_OPTIONAL_INTERFACE_METHOD),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_optional_interface_method(),
             _ => panic!(),
         }
     }
@@ -620,7 +620,7 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_OPTIONAL_INTERFACE_METHOD, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_OPTIONAL_INTERFACE_METHOD, value);
             },
             _ => panic!(),
         }
@@ -629,8 +629,8 @@ impl Symbol {
     pub fn is_overriding(&self) -> bool {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_OVERRIDING),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.is_overriding.get(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_OVERRIDING),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.is_overriding.get(),
             _ => panic!(),
         }
     }
@@ -639,9 +639,9 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_OVERRIDING, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_OVERRIDING, value);
             },
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => {
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => {
                 data.is_overriding.set(value);
             },
             _ => panic!(),
@@ -651,8 +651,8 @@ impl Symbol {
     pub fn is_constructor(&self) -> bool {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Function(data) => data.flags.borrow().contains(FunctionSymbolFlags::IS_CONSTRUCTOR),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.is_constructor(),
+            SymbolKind::Function(data) => data.flags.borrow().contains(MethodFlags::IS_CONSTRUCTOR),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.is_constructor(),
             _ => panic!(),
         }
     }
@@ -661,7 +661,7 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => {
-                data.flags.borrow_mut().set(FunctionSymbolFlags::IS_CONSTRUCTOR, value);
+                data.flags.borrow_mut().set(MethodFlags::IS_CONSTRUCTOR, value);
             },
             _ => panic!(),
         }
@@ -741,7 +741,7 @@ impl Symbol {
             SymbolKind::VirtualProperty(data) => data.parent.borrow().clone(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.parent(),
             SymbolKind::Function(data) => data.parent.borrow().clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.parent(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.parent(),
             SymbolKind::Scope(data, _) => data.parent.borrow().clone(),
             _ => None,
         }
@@ -1072,7 +1072,7 @@ impl Symbol {
             SymbolKind::VariableProperty(data) => data.metadata.clone(),
             SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.metadata(),
             SymbolKind::Function(data) => data.metadata.clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.metadata(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.metadata(),
             SymbolKind::BlockStatement(data) => data.metadata.clone(),
             _ => panic!(),
         }
@@ -1092,7 +1092,7 @@ impl Symbol {
             SymbolKind::VirtualProperty(data) => data.visibility.get(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.visibility(),
             SymbolKind::Function(data) => data.visibility.get(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.visibility(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.visibility(),
             _ => panic!(),
         }
     }
@@ -1152,7 +1152,7 @@ impl Symbol {
             SymbolKind::VirtualProperty(data) => data.jetdoc.borrow().clone(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.jetdoc(),
             SymbolKind::Function(data) => data.jetdoc.borrow().clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.jetdoc(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.jetdoc(),
             _ => panic!(),
         }
     }
@@ -1319,7 +1319,7 @@ impl Symbol {
             SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => data.origin.clone(),
             SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.clone(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.clone(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.clone(),
             _ => panic!(),
         }
     }
@@ -1337,7 +1337,7 @@ impl Symbol {
         match symbol.as_ref() {
             SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.indirect_type_parameters.clone(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.indirect_type_parameters.clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.indirect_type_parameters.clone(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.indirect_type_parameters.clone(),
             _ => panic!(),
         }
     }
@@ -1347,7 +1347,7 @@ impl Symbol {
         match symbol.as_ref() {
             SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.indirect_substitute_types.clone(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.indirect_substitute_types.clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.indirect_substitute_types.clone(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.indirect_substitute_types.clone(),
             _ => panic!(),
         }
     }
@@ -1720,13 +1720,13 @@ impl Symbol {
         }
     }
 
-    /// Signature of a function symbol as a structural function type.
+    /// Signature of a method symbol as a structural function type.
     /// Possibly `Unresolved`.
     pub fn signature(&self, host: &SymbolHost) -> Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => data.signature.borrow().clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => {
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => {
                 if let Some(r) = data.signature.borrow().as_ref() {
                     return r.clone();
                 }
@@ -1752,12 +1752,12 @@ impl Symbol {
         }
     }
 
-    /// The virtual property to which a function symbol belongs.
+    /// The virtual property to which a method symbol belongs.
     pub fn of_virtual_property(&self, host: &SymbolHost) -> Option<Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => data.of_virtual_property.borrow().clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => {
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => {
                 if let Some(r) = data.of_virtual_property.borrow().as_ref() {
                     return Some(r.clone());
                 }
@@ -1783,12 +1783,12 @@ impl Symbol {
         }
     }
 
-    /// Set of function symbols used to override a function symbol.
+    /// Set of method symbols used to override a method symbol.
     pub fn overriden_by(&self, host: &SymbolHost) -> SharedArray<Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => data.overriden_by.clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => {
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => {
                 if let Some(r) = data.overriden_by.borrow().as_ref() {
                     return r.clone();
                 }
@@ -1805,7 +1805,7 @@ impl Symbol {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Function(data) => data.overrides_method.borrow().clone(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => {
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => {
                 if let Some(r) = data.overrides_method.borrow().as_ref() {
                     return Some(r.clone());
                 }
@@ -1827,7 +1827,7 @@ impl Symbol {
             SymbolKind::Function(data) => {
                 data.overrides_method.replace(value);
             },
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => {
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => {
                 data.overrides_method.replace(value);
             },
             _ => panic!(),
@@ -2320,7 +2320,7 @@ impl Symbol {
         if self.is_variable_property() || self.is_virtual_property() {
             return self.static_type(host);
         }
-        if self.is_function() {
+        if self.is_method() {
             return self.signature(host);
         }
         assert!(self.is_type());
@@ -2660,7 +2660,7 @@ impl ToString for Symbol {
             SymbolKind::Function(_) => self.fully_qualified_name(),
             SymbolKind::VariablePropertyAfterIndirectTypeSubstitution(data) => data.origin.fully_qualified_name(),
             SymbolKind::VirtualPropertyAfterIndirectTypeSubstitution(data) => data.origin.fully_qualified_name(),
-            SymbolKind::FunctionAfterIndirectTypeSubstitution(data) => data.origin.fully_qualified_name(),
+            SymbolKind::MethodAfterIndirectTypeSubstitution(data) => data.origin.fully_qualified_name(),
             _ => panic!(),
         }
     }
@@ -2722,8 +2722,8 @@ pub(crate) enum SymbolKind {
     VariablePropertyAfterIndirectTypeSubstitution(Rc<VariablePropertyAfterIndirectTypeSubstitutionData>),
     VirtualProperty(Rc<VirtualPropertyData>),
     VirtualPropertyAfterIndirectTypeSubstitution(Rc<VirtualPropertyAfterIndirectTypeSubstitutionData>),
-    Function(Rc<FunctionSymbolData>),
-    FunctionAfterIndirectTypeSubstitution(Rc<FunctionAfterIndirectTypeSubstitutionData>),
+    Function(Rc<MethodData>),
+    MethodAfterIndirectTypeSubstitution(Rc<MethodAfterIndirectTypeSubstitutionData>),
     Scope(Rc<ScopeData>, Option<ScopeKind>),
     Value(ValueData, Option<Rc<ValueKind>>),
     BlockStatement(Rc<BlockStatementSymbolData>),
@@ -2895,11 +2895,11 @@ pub(crate) struct VirtualPropertyAfterIndirectTypeSubstitutionData {
     pub setter: RefCell<Option<Symbol>>,
 }
 
-pub(crate) struct FunctionSymbolData {
+pub(crate) struct MethodData {
     pub name: String,
     pub parent: RefCell<Option<Symbol>>,
     pub visibility: Cell<Visibility>,
-    pub flags: RefCell<FunctionSymbolFlags>,
+    pub flags: RefCell<MethodFlags>,
     pub signature: RefCell<Symbol>,
     pub of_virtual_property: RefCell<Option<Symbol>>,
     pub overriden_by: SharedArray<Symbol>,
@@ -2911,7 +2911,7 @@ pub(crate) struct FunctionSymbolData {
 
 bitflags! {
     #[derive(Copy, Clone, PartialEq, Eq)]
-    pub(crate) struct FunctionSymbolFlags: u16 {
+    pub(crate) struct MethodFlags: u16 {
         const IS_GENERATOR = 0b0000_0001;
         const IS_ASYNC = 0b0000_0010;
         const IS_NATIVE = 0b0000_0100;
@@ -2923,7 +2923,7 @@ bitflags! {
     }
 }
 
-pub(crate) struct FunctionAfterIndirectTypeSubstitutionData {
+pub(crate) struct MethodAfterIndirectTypeSubstitutionData {
     pub origin: Symbol,
     pub indirect_type_parameters: SharedArray<Symbol>,
     pub indirect_substitute_types: SharedArray<Symbol>,
@@ -3620,11 +3620,11 @@ impl Deref for VirtualPropertyAfterIndirectTypeSubstitution {
     }
 }
 
-/// Function symbol.
+/// Method symbol.
 ///
 /// # Supported methods
 ///
-/// * `is_function()`
+/// * `is_method()`
 /// * `is_origin_function()` — Returns `true`.
 /// * `name()` — The function name. The name may be empty for special functions.
 /// * `fully_qualified_name()`
@@ -3656,30 +3656,30 @@ impl Deref for VirtualPropertyAfterIndirectTypeSubstitution {
 /// * `set_signature()`
 /// * `of_virtual_property()`
 /// * `set_of_virtual_property()`
-/// * `overriden_by()` — List of function symbols used to override the function symbol.
+/// * `overriden_by()` — List of method symbols used to override the method symbol.
 /// * `overrides_method()` — Indicates an overriden method.
 /// * `set_overrides_method()`
 /// * `activation_scope()` — Activation scope, present for
 ///   non `abstract` non `native` functions and required interface methods.
 /// * `set_activation_scope()`
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct FunctionSymbol(pub Symbol);
+pub struct Method(pub Symbol);
 
-impl Deref for FunctionSymbol {
+impl Deref for Method {
     type Target = Symbol;
     fn deref(&self) -> &Self::Target {
-        assert!(self.0.is_function());
+        assert!(self.0.is_method());
         &self.0
     }
 }
 
-/// Function symbol after indirect type substitution.
+/// Method symbol after indirect type substitution.
 ///
 /// # Supported methods
 ///
-/// * `is_function()`
+/// * `is_method()`
 /// * `is_origin_function()` — Returns `false`.
-/// * `is_function_after_indirect_type_substitution()` — Returns `true`.
+/// * `is_method_after_indirect_type_substitution()` — Returns `true`.
 /// * `name()` — The function name. The name may be empty for special functions.
 /// * `fully_qualified_name()`
 /// * `to_string()`
@@ -3698,19 +3698,19 @@ impl Deref for FunctionSymbol {
 /// * `set_is_overriding()`
 /// * `signature()`
 /// * `of_virtual_property()`
-/// * `overriden_by()` — List of function symbols used to override the function symbol.
+/// * `overriden_by()` — List of method symbols used to override the method symbol.
 /// * `overrides_method()` — Indicates an overriden method.
 /// * `set_overrides_method()`
 /// * `origin()`
 /// * `indirect_type_parameters()`
 /// * `indirect_substitute_types()`
 #[derive(Clone, Hash, PartialEq, Eq)]
-pub struct FunctionAfterIndirectTypeSubstitution(pub Symbol);
+pub struct MethodAfterIndirectTypeSubstitution(pub Symbol);
 
-impl Deref for FunctionAfterIndirectTypeSubstitution {
+impl Deref for MethodAfterIndirectTypeSubstitution {
     type Target = Symbol;
     fn deref(&self) -> &Self::Target {
-        assert!(self.0.is_function_after_indirect_type_substitution());
+        assert!(self.0.is_method_after_indirect_type_substitution());
         &self.0
     }
 }
