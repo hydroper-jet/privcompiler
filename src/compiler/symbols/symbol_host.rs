@@ -157,12 +157,12 @@ impl SymbolHost {
         (self.import_meta_env).clone()
     }
 
-    /// The JetPM output directory path.
+    /// The JetDependencies output directory path.
     pub fn jetdependencies_output_directory(&self) -> String {
         self.jetdependencies_output_directory.clone()
     }
 
-    /// The JetPM constants.
+    /// The JetDependencies constants.
     pub fn jetdependencies_constants(&self) -> SharedMap<String, String> {
         self.jetdependencies_constants.clone()
     }
