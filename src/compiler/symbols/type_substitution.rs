@@ -48,7 +48,7 @@ impl<'a> TypeSubstitution<'a> {
         } else if symbol.is_virtual_property() {
             self.0.factory().create_virtual_property_after_indirect_type_substitution(symbol, type_parameters, substitute_types)
         } else if symbol.is_method() {
-            self.0.factory().create_function_after_indirect_type_substitution(symbol, type_parameters, substitute_types)
+            self.0.factory().create_method_after_indirect_type_substitution(symbol, type_parameters, substitute_types)
         } else {
             panic!()
         }

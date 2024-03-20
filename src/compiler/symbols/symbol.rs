@@ -164,7 +164,7 @@ impl Symbol {
         )
     }
 
-    pub fn is_origin_function(&self) -> bool {
+    pub fn is_origin_method(&self) -> bool {
         matches!(self.0.upgrade().unwrap().as_ref(), SymbolKind::Function(_))
     }
 
@@ -995,36 +995,36 @@ impl Symbol {
         }
     }
 
-    pub fn constructor_function(&self, host: &SymbolHost) -> Option<Symbol> {
+    pub fn constructor_method(&self, host: &SymbolHost) -> Option<Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::ClassType(data)) => {
-                let ClassTypeData { ref constructor_function, .. } = data.as_ref();
-                constructor_function.borrow().clone()
+                let ClassTypeData { ref constructor_method, .. } = data.as_ref();
+                constructor_method.borrow().clone()
             },
             SymbolKind::Type(TypeKind::TypeAfterExplicitTypeSubstitution(data)) => {
-                if let Some(r) = data.constructor_function.borrow().as_ref() {
+                if let Some(r) = data.constructor_method.borrow().as_ref() {
                     return Some(r.clone());
                 }
-                let r = data.origin.constructor_function(host);
+                let r = data.origin.constructor_method(host);
                 if r.is_none() {
                     return None;
                 }
                 let r = r.unwrap();
                 let r = TypeSubstitution(host).execute(&r, &data.origin.type_parameters().unwrap(), &data.substitute_types);
-                data.constructor_function.replace(Some(r.clone()));
+                data.constructor_method.replace(Some(r.clone()));
                 Some(r)
             },
             _ => panic!(),
         }
     }
 
-    pub fn set_constructor_function(&self, value: Option<&Symbol>) {
+    pub fn set_constructor_method(&self, value: Option<&Symbol>) {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
             SymbolKind::Type(TypeKind::ClassType(data)) => {
-                let ClassTypeData { ref constructor_function, .. } = data.as_ref();
-                constructor_function.replace(value.map(|f| f.clone()));
+                let ClassTypeData { ref constructor_method, .. } = data.as_ref();
+                constructor_method.replace(value.map(|f| f.clone()));
             },
             _ => panic!(),
         }
@@ -2760,7 +2760,7 @@ pub(crate) struct ClassTypeData {
     pub flags: RefCell<ClassTypeFlags>,
     pub type_parameters: RefCell<Option<SharedArray<Symbol>>>,
     pub static_properties: SharedMap<String, Symbol>,
-    pub constructor_function: RefCell<Option<Symbol>>,
+    pub constructor_method: RefCell<Option<Symbol>>,
     pub prototype: SharedMap<String, Symbol>,
     pub proxies: SharedMap<ProxyKind, Symbol>,
     pub list_of_to_proxies: SharedArray<Symbol>,
@@ -2816,7 +2816,7 @@ pub(crate) struct TypeAfterExplicitTypeSubstitutionData {
     pub extends_interfaces: RefCell<Option<SharedArray<Symbol>>>,
     pub implements: RefCell<Option<SharedArray<Symbol>>>,
     pub static_properties: RefCell<Option<SharedMap<String, Symbol>>>,
-    pub constructor_function: RefCell<Option<Symbol>>,
+    pub constructor_method: RefCell<Option<Symbol>>,
     pub prototype: RefCell<Option<SharedMap<String, Symbol>>>,
     pub proxies: RefCell<Option<SharedMap<ProxyKind, Symbol>>>,
     pub list_of_to_proxies: RefCell<Option<SharedArray<Symbol>>>,
@@ -3162,8 +3162,8 @@ impl Deref for VoidType {
 /// * `type_parameters()`
 /// * `set_type_parameters()`
 /// * `static_properties()`
-/// * `constructor_function()`
-/// * `set_constructor_function()`
+/// * `constructor_method()`
+/// * `set_constructor_method()`
 /// * `prototype()`
 /// * `proxies()`
 /// * `list_of_to_proxies()`
@@ -3391,7 +3391,7 @@ impl Deref for TypeParameterType {
 /// * `parent()`
 /// * `extends_class()`
 /// * `static_properties()`
-/// * `constructor_function()`
+/// * `constructor_method()`
 /// * `prototype()`
 /// * `proxies()`
 /// * `list_of_to_proxies()`
@@ -3625,7 +3625,7 @@ impl Deref for VirtualPropertyAfterIndirectTypeSubstitution {
 /// # Supported methods
 ///
 /// * `is_method()`
-/// * `is_origin_function()` — Returns `true`.
+/// * `is_origin_method()` — Returns `true`.
 /// * `name()` — The function name. The name may be empty for special functions.
 /// * `fully_qualified_name()`
 /// * `to_string()`
@@ -3678,7 +3678,7 @@ impl Deref for Method {
 /// # Supported methods
 ///
 /// * `is_method()`
-/// * `is_origin_function()` — Returns `false`.
+/// * `is_origin_method()` — Returns `false`.
 /// * `is_method_after_indirect_type_substitution()` — Returns `true`.
 /// * `name()` — The function name. The name may be empty for special functions.
 /// * `fully_qualified_name()`

@@ -30,7 +30,7 @@ impl<'a> SymbolFactory<'a> {
             flags: RefCell::new(ClassTypeFlags::empty()),
             type_parameters: RefCell::new(None),
             static_properties: SharedMap::new(),
-            constructor_function: RefCell::new(None),
+            constructor_method: RefCell::new(None),
             prototype: SharedMap::new(),
             proxies: SharedMap::new(),
             list_of_to_proxies: SharedArray::new(),
@@ -196,7 +196,7 @@ impl<'a> SymbolFactory<'a> {
             implements: RefCell::new(None),
             extends_interfaces: RefCell::new(None),
             static_properties: RefCell::new(None),
-            constructor_function: RefCell::new(None),
+            constructor_method: RefCell::new(None),
             prototype: RefCell::new(None),
             proxies: RefCell::new(None),
             list_of_to_proxies: RefCell::new(None),
@@ -401,7 +401,7 @@ impl<'a> SymbolFactory<'a> {
     }
 
     /// Creates an interned function after indirect type substitution.
-    pub fn create_function_after_indirect_type_substitution(&self, origin: &Symbol, indirect_type_parameters: &SharedArray<Symbol>, indirect_substitute_types: &SharedArray<Symbol>) -> Symbol {
+    pub fn create_method_after_indirect_type_substitution(&self, origin: &Symbol, indirect_type_parameters: &SharedArray<Symbol>, indirect_substitute_types: &SharedArray<Symbol>) -> Symbol {
         // Verify parameter count
         assert_eq!(indirect_type_parameters.length(), indirect_substitute_types.length());
 
