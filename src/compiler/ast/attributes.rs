@@ -118,7 +118,7 @@ impl UnprocessedMetadataValue {
                 // Resolve file path
                 let mut file_path = file_path.0.clone();
                 if *output {
-                    file_path = FlexPath::from_n_native([verifier.host.jetpm_output_directory().as_ref(), file_path.as_ref()]).to_string_with_flex_separator();
+                    file_path = FlexPath::from_n_native([verifier.host.jetdependencies_output_directory().as_ref(), file_path.as_ref()]).to_string_with_flex_separator();
                 } else {
                     file_path = FlexPath::new_native(&self.location().compilation_unit().file_path().unwrap_or(String::new())).resolve("..").resolve(&file_path).to_string_with_flex_separator();
                 }

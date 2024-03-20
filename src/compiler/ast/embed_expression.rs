@@ -98,7 +98,7 @@ impl EmbedExpression {
                 let Expression::StringLiteral(StringLiteral { value: right_val, .. }) = right.as_ref() else {
                     return None;
                 };
-                Some(FlexPath::from_n_native([verifier.host.jetpm_output_directory().as_ref(), right_val.as_ref()]).to_string_with_flex_separator())
+                Some(FlexPath::from_n_native([verifier.host.jetdependencies_output_directory().as_ref(), right_val.as_ref()]).to_string_with_flex_separator())
             },
             _ => None,
         }

@@ -21,7 +21,7 @@ fn main() -> io::Result<()> {
     // Canonicalize path
     // let source_path = std::path::Path::new(&source_path).canonicalize().unwrap().to_string_lossy().into_owned();
 
-    let jetpm_target_path = FlexPath::new_native(&source_path).resolve("../jetpm-target").to_string_with_flex_separator();
+    let jetdependencies_target_path = FlexPath::new_native(&source_path).resolve("../jetpm-target").to_string_with_flex_separator();
     let source_path_ast_json = FlexPath::new_native(&source_path).change_extension(".ast.json").to_string_with_flex_separator();
     let source_path_diagnostics = FlexPath::new_native(&source_path).change_extension(".diag").to_string_with_flex_separator();
     let source_content = fs::read_to_string(&source_path)?;
