@@ -7,6 +7,7 @@ pub struct SymbolHost {
     pub(crate) void_type: Symbol,
     pub(crate) import_meta: Symbol,
     pub(crate) import_meta_env: Symbol,
+    pub(crate) jetdependencies_project_directory: String,
     pub(crate) jetdependencies_output_directory: String,
     pub(crate) jetdependencies_constants: SharedMap<String, String>,
 
@@ -55,7 +56,7 @@ pub struct SymbolHost {
 }
 
 impl SymbolHost {
-    pub fn new(jetdependencies_output_directory: &str) -> Rc<Self> {
+    pub fn new(jetdependencies_output_directory: &str, jetdependencies_project_directory: &str) -> Rc<Self> {
         let arena = Arena::new();
         let unresolved = Symbol(arena.allocate(SymbolKind::Unresolved));
         let any_type = Symbol(arena.allocate(SymbolKind::Type(TypeKind::AnyType)));
@@ -85,6 +86,7 @@ impl SymbolHost {
             void_type,
             import_meta,
             import_meta_env,
+            jetdependencies_project_directory: jetdependencies_project_directory.to_owned(),
             jetdependencies_output_directory: jetdependencies_output_directory.to_owned(),
             jetdependencies_constants: SharedMap::new(),
 
@@ -530,7 +532,7 @@ impl SymbolHost {
             return env.clone();
         }
         let mut r = HashMap::<String, String>::new();
-        if let Ok(iterator) = dotenvy::dotenv_iter() {
+        if let Ok(iterator) = dotenvy::from_path_iter(&self.jetdependencies_project_directory) {
             for item in iterator {
                 if let Ok((key, value)) = item {
                     r.insert(key, value);
