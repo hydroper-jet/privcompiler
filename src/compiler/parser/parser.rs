@@ -440,7 +440,7 @@ impl<'input> Parser<'input> {
             if operator == Operator::In && !context.allow_in {
                 return None;
             }
-            Some(BinaryOperator::try_from(operator).unwrap())
+            BinaryOperator::try_from(operator).ok()
         } else {
             None
         }
