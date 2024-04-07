@@ -27,7 +27,6 @@ pub enum DiagnosticKind {
     DuplicateVisibility = 1047,
     ExpectedDirectiveKeyword = 1048,
     UnallowedAttribute = 1049,
-    UseDirectiveMustContainPublic = 1050,
     MalformedEnumMember = 1051,
     FunctionMayNotBeGenerator = 1052,
     FunctionMayNotBeAsynchronous = 1053,

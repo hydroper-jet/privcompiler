@@ -2690,8 +2690,7 @@ impl<'input> Parser<'input> {
             })), semicolon))
         } else if self.peek(Token::Public) || self.peek(Token::Private) || self.peek(Token::Protected)
         || self.peek(Token::Internal) || self.peek(Token::Var) || self.peek(Token::Const)
-        || self.peek(Token::Function) || self.peek(Token::Class) || self.peek(Token::Interface)
-        || self.peek(Token::Use) {
+        || self.peek(Token::Function) || self.peek(Token::Class) || self.peek(Token::Interface) {
             let mut context = AnnotatableContext {
                 start_location: self.token_location(),
                 jetdoc,
@@ -2701,6 +2700,8 @@ impl<'input> Parser<'input> {
             };
             self.parse_attribute_identifier_names(&mut context)?;
             return self.parse_annotatable_directive(context);
+        } else if self.peek(Token::Use) {
+            self.parse_use_package_directive(context)
         } else {
             self.parse_statement(context)
         }
@@ -2721,9 +2722,7 @@ impl<'input> Parser<'input> {
     }
 
     fn parse_annotatable_directive(&mut self, context: AnnotatableContext) -> Result<(Rc<Directive>, bool), ParsingFailure> {
-        if self.consume(Token::Use)? {
-            self.parse_use_directive(context)
-        } else if self.peek(Token::Var) || self.peek(Token::Const) {
+        if self.peek(Token::Var) || self.peek(Token::Const) {
             self.parse_variable_definition(context)
         } else if self.consume(Token::Function)? {
             self.parse_function_definition(context)
@@ -2961,9 +2960,10 @@ impl<'input> Parser<'input> {
         }
     }
 
-    fn parse_use_directive(&mut self, context: AnnotatableContext) -> Result<(Rc<Directive>, bool), ParsingFailure> {
-        let AnnotatableContext { start_location, jetdoc, attributes, context, .. } = context;
-        self.push_location(&start_location);
+    fn parse_use_package_directive(&mut self, context: ParsingDirectiveContext) -> Result<(Rc<Directive>, bool), ParsingFailure> {
+        self.mark_location();
+        self.next()?;
+        self.expect(Token::Package)?;
         let mut alias: Option<(String, Location)> = None;
         let mut package_name: Vec<(String, Location)> = vec![];
         let mut import_specifier = ImportSpecifier::Wildcard(self.token_location());
@@ -3002,28 +3002,8 @@ impl<'input> Parser<'input> {
             self.add_syntax_error(&location, DiagnosticKind::NotAllowedHere, diagnostic_arguments![String("'use'".into()), Token(self.token.0.clone())]);
         }
 
-        let mut has_public = false;
-
-        for a in &attributes {
-            if a.is_metadata() {
-                continue;
-            }
-            if a.is_public() {
-                has_public = true;
-            } else {
-                // Unallowed attribute
-                self.add_syntax_error(&a.location(), DiagnosticKind::UnallowedAttribute, diagnostic_arguments![]);
-            }
-        }
-
-        if !has_public {
-            self.add_syntax_error(&location, DiagnosticKind::UseDirectiveMustContainPublic, diagnostic_arguments![]);
-        }
-
-        let node = Rc::new(Directive::UseDirective(UseDirective {
+        let node = Rc::new(Directive::UsePackageDirective(UsePackageDirective {
             location,
-            jetdoc,
-            attributes,
             alias,
             package_name,
             import_specifier,

@@ -1,5 +1,4 @@
 use crate::ns::*;
-use std::cell::Cell;
 
 /// Context used to control the parsing of an expression.
 #[derive(Clone)]

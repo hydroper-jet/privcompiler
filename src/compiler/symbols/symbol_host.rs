@@ -66,7 +66,7 @@ impl SymbolHost {
             name: String::new(),
             parent: RefCell::new(None),
             properties: SharedMap::new(),
-            redirect_packages: SharedArray::new(),
+            use_packages: SharedArray::new(),
             subpackages: SharedMap::new(),
             jetdoc: RefCell::new(None),
         }))));

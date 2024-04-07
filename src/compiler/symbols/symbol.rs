@@ -1395,10 +1395,10 @@ impl Symbol {
         }
     }
 
-    pub fn redirect_packages(&self) -> SharedArray<Symbol> {
+    pub fn use_packages(&self) -> SharedArray<Symbol> {
         let symbol = self.0.upgrade().unwrap();
         match symbol.as_ref() {
-            SymbolKind::Package(data) => data.redirect_packages.clone(),
+            SymbolKind::Package(data) => data.use_packages.clone(),
             _ => panic!(),
         }
     }
@@ -2845,7 +2845,7 @@ pub(crate) struct PackageData {
     pub name: String,
     pub parent: RefCell<Option<Symbol>>,
     pub properties: SharedMap<String, Symbol>,
-    pub redirect_packages: SharedArray<Symbol>,
+    pub use_packages: SharedArray<Symbol>,
     pub subpackages: SharedMap<String, Symbol>,
     pub jetdoc: RefCell<Option<Rc<JetDoc>>>,
 }
@@ -3451,7 +3451,7 @@ impl Deref for Alias {
 /// * `parent()`
 /// * `set_parent()`
 /// * `properties()`
-/// * `redirect_packages()`
+/// * `use_packages()`
 /// * `subpackages()`
 /// * `jetdoc()`
 /// * `set_jetdoc()`

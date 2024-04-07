@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use crate::ns::*;
 
 pub struct Comment {

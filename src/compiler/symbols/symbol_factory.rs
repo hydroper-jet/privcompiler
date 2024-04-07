@@ -242,7 +242,7 @@ impl<'a> SymbolFactory<'a> {
                     name: name_1.clone(),
                     parent: RefCell::new(Some(result.clone())),
                     properties: SharedMap::new(),
-                    redirect_packages: SharedArray::new(),
+                    use_packages: SharedArray::new(),
                     subpackages: SharedMap::new(),
                     jetdoc: RefCell::new(None),
                 }))));

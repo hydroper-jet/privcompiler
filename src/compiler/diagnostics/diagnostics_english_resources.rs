@@ -31,7 +31,6 @@ lazy_static! {
         DiagnosticKind::DuplicateVisibility.id() => "Duplicate visibility".into(),
         DiagnosticKind::ExpectedDirectiveKeyword.id() => "Expected directive keyword".into(),
         DiagnosticKind::UnallowedAttribute.id() => "Unallowed attribute".into(),
-        DiagnosticKind::UseDirectiveMustContainPublic.id() => "Use directive must contain the 'public' attribute".into(),
         DiagnosticKind::MalformedEnumMember.id() => "Malformed enumeration member".into(),
         DiagnosticKind::FunctionMayNotBeGenerator.id() => "Function may not be generator".into(),
         DiagnosticKind::FunctionMayNotBeAsynchronous.id() => "Function may not be asynchronous".into(),

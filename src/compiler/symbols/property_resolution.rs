@@ -217,7 +217,7 @@ impl<'a> PropertyResolution<'a> {
 
                 return Ok(Some(r.resolve_alias().wrap_property_reference(self.0)));
             }
-            for p in base.redirect_packages().iter() {
+            for p in base.use_packages().iter() {
                 let r = self.resolve_property_with_disambiguation(&p, qual.clone(), SemanticPropertyKey::String(key.clone()), disamb)?;
                 if r.is_some() {
                     return Ok(r);

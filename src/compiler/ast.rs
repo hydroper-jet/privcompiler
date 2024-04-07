@@ -107,8 +107,8 @@ mod configuration_directive;
 pub use configuration_directive::*;
 mod import_directive;
 pub use import_directive::*;
-mod use_directive;
-pub use use_directive::*;
+mod use_package_directive;
+pub use use_package_directive::*;
 
 // Miscellaneous
 mod attributes;

@@ -1,6 +1,5 @@
 use crate::ns::*;
 use serde::{Serialize, Deserialize};
-use std::rc::Rc;
 
 /// The `o.<...>` expression.
 #[derive(Clone, Serialize, Deserialize)]
