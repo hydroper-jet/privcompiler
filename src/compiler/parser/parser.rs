@@ -1577,7 +1577,7 @@ impl<'input> Parser<'input> {
                 return self.finish_qualified_identifier(attribute, ql, id);
             } else {
                 let id = QualifiedIdentifier {
-                    location: id_location.clone(),
+                    location: self.pop_location(),
                     attribute,
                     qualifier: None,
                     id: QualifiedIdentifierIdentifier::Id((id, id_location.clone())),
