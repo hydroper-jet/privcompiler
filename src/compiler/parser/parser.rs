@@ -1291,7 +1291,7 @@ impl<'input> Parser<'input> {
             Ok(self.parse_object_initializer()?)
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedExpression, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            Ok(self.create_invalidated_expression(&self.tokenizer.cursor_location()))
         }
     }
 
@@ -1446,7 +1446,7 @@ impl<'input> Parser<'input> {
             return Ok((value, location));
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedXmlAttributeValue, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            Ok(("".into(), self.tokenizer.cursor_location()))
         }
     }
 
@@ -1471,7 +1471,7 @@ impl<'input> Parser<'input> {
             return Ok((name, name_location));
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedXmlName, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            Ok(("".into(), self.tokenizer.cursor_location()))
         }
     }
 
@@ -1598,7 +1598,12 @@ impl<'input> Parser<'input> {
         }
 
         self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedIdentifier, diagnostic_arguments![Token(self.token.0.clone())]);
-        Err(ParsingFailure)
+        Ok(QualifiedIdentifier {
+            location: self.pop_location(),
+            attribute,
+            qualifier: None,
+            id: QualifiedIdentifierIdentifier::Id(("".into(), self.tokenizer.cursor_location())),
+        })
     }
 
     /// Expects a colon-colon and finishes a qualified identifier.
@@ -1637,7 +1642,12 @@ impl<'input> Parser<'input> {
             })
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedIdentifier, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            Ok(QualifiedIdentifier {
+                location: self.pop_location(),
+                attribute,
+                qualifier: Some(qual),
+                id: QualifiedIdentifierIdentifier::Id(("".into(), self.tokenizer.cursor_location())),
+            })
         }
     }
 
@@ -2823,7 +2833,9 @@ impl<'input> Parser<'input> {
             self.parse_type_definition(context)
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedDirectiveKeyword, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            self.push_location(&context.start_location);
+            let loc = self.pop_location();
+            Ok((self.create_invalidated_directive(&loc), true))
         }
     }
 
@@ -3181,6 +3193,7 @@ impl<'input> Parser<'input> {
                 name = self.expect_identifier(true)?;
             }
         }
+        let mut invalidated = false;
         let constructor = !getter && !setter && !has_proxy && context.function_name_is_constructor(&name);
         let name = if getter {
             FunctionName::Getter(name)
@@ -3189,10 +3202,11 @@ impl<'input> Parser<'input> {
         } else if constructor {
             FunctionName::Constructor(name)
         } else if has_proxy {
-            let proxy_kind = ProxyKind::from_str(&name.0);
+            let mut proxy_kind = ProxyKind::from_str(&name.0);
             if proxy_kind.is_err() {
                 self.add_syntax_error(&name.1, DiagnosticKind::UnrecognizedProxy, diagnostic_arguments![String(name.0.clone())]);
-                return Err(ParsingFailure);
+                invalidated = true;
+                proxy_kind = Ok(ProxyKind::BitwiseXor);
             }
             FunctionName::Proxy(proxy_kind.unwrap(), name)
         } else {
@@ -3288,13 +3302,20 @@ impl<'input> Parser<'input> {
             }
         }
 
-        let node = Rc::new(Directive::FunctionDefinition(FunctionDefinition {
-            location: self.pop_location(),
-            jetdoc,
-            attributes,
-            name: name.clone(),
-            common,
-        }));
+        let node: Rc<Directive>;
+
+        if invalidated {
+            let loc = &self.pop_location();
+            node = self.create_invalidated_directive(loc);
+        } else {
+            node = Rc::new(Directive::FunctionDefinition(FunctionDefinition {
+                location: self.pop_location(),
+                jetdoc,
+                attributes,
+                name: name.clone(),
+                common,
+            }));
+        }
 
         Ok((node, semicolon))
     }
@@ -3652,16 +3673,25 @@ impl<'input> Parser<'input> {
             if let Some(equality) = equality {
                 self.push_location(&id.location());
                 self.mark_location();
-                let value: String;
+                let mut value: String = "".into();
                 if let Some((value_1, _)) = self.consume_identifier(false)? {
                     value = value_1;
                 } else {
-                    let Token::StringLiteral(s) = &self.token.0 else {
+                    if let Token::StringLiteral(s) = &self.token.0 {
+                        value = s.clone();
+                        self.next()?;
+                    } else {
                         self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedStringLiteral, diagnostic_arguments![Token(self.token.0.clone())]);
-                        return Err(ParsingFailure);
-                    };
-                    value = s.clone();
-                    self.next()?;
+                        while self.token.0 != Token::Eof {
+                            self.next()?;
+                            if let Token::StringLiteral(s) = self.token.0.clone() {
+                                self.pop_location();
+                                self.mark_location();
+                                value = s;
+                                self.next()?;
+                            }
+                        }
+                    }
                 }
                 let right = Rc::new(Expression::StringLiteral(StringLiteral {
                     location: self.pop_location(),
@@ -3696,7 +3726,7 @@ impl<'input> Parser<'input> {
             })))
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedExpression, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            Ok(self.create_invalidated_expression(&self.tokenizer.cursor_location()))
         }
     }
 
@@ -4181,7 +4211,8 @@ impl ParserFacade {
         let mut parser = Parser::new(compilation_unit);
         if parser.next().is_ok() {
             let program = parser.parse_program().ok();
-            if compilation_unit.invalidated() { None } else { program }
+            /* if compilation_unit.invalidated() { None } else { program } */
+            program
         } else {
             None
         }
@@ -4197,7 +4228,7 @@ impl ParserFacade {
             if exp.is_some() {
                 let _ = parser.expect_eof();
             }
-            if compilation_unit.invalidated() { None } else { exp }
+            exp
         } else {
             None
         }
@@ -4211,7 +4242,7 @@ impl ParserFacade {
             if exp.is_some() {
                 let _ = parser.expect_eof();
             }
-            if compilation_unit.invalidated() { None } else { exp }
+            exp
         } else {
             None
         }
@@ -4221,8 +4252,7 @@ impl ParserFacade {
     pub fn parse_directives(compilation_unit: &Rc<CompilationUnit>, context: ParsingDirectiveContext) -> Option<Vec<Rc<Directive>>> {
         let mut parser = Parser::new(compilation_unit);
         if parser.next().is_ok() {
-            let directives = parser.parse_directives(context).ok();
-            if compilation_unit.invalidated() { None } else { directives }
+            parser.parse_directives(context).ok()
         } else {
             None
         }

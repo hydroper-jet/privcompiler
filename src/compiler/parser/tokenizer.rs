@@ -414,7 +414,8 @@ impl<'input> Tokenizer<'input> {
             _ => {
                 if self.characters.has_remaining() {
                     self.add_unexpected_error();
-                    return Err(ParsingFailure);
+                    self.characters.next();
+                    return self.scan_ie_div();
                 // Eof
                 } else {
                     return Ok((Token::Eof, start))
@@ -626,7 +627,7 @@ impl<'input> Tokenizer<'input> {
         let start = self.cursor_location();
         if self.characters.peek_or_zero() != 'u' {
             self.add_unexpected_error();
-            return Err(ParsingFailure);
+            return Ok('_');
         }
         self.characters.next();
 
@@ -638,7 +639,7 @@ impl<'input> Tokenizer<'input> {
                 | self.expect_hex_digit()?);
             let Some(r) = r else {
                 self.compilation_unit.add_diagnostic(Diagnostic::new_syntax_error(&start.combine_with(self.cursor_location()), DiagnosticKind::UnexpectedOrInvalidToken, vec![]));
-                return Err(ParsingFailure);
+                return Ok('_');
             };
             return Ok(r);
         }
@@ -646,7 +647,7 @@ impl<'input> Tokenizer<'input> {
         // Scan \u{}
         if self.characters.peek_or_zero() != '{' {
             self.add_unexpected_error();
-            return Err(ParsingFailure);
+            return Ok('_');
         }
         self.characters.next();
         while CharacterValidator::is_hex_digit(self.characters.peek_or_zero()) {
@@ -654,19 +655,26 @@ impl<'input> Tokenizer<'input> {
         }
         if self.characters.peek_or_zero() != '}' {
             self.add_unexpected_error();
-            return Err(ParsingFailure);
+            while self.characters.has_remaining() {
+                self.characters.next();
+                if self.characters.peek_or_zero() == '}' {
+                    self.characters.next();
+                    break;
+                }
+            }
+            return Ok('_');
         }
         self.characters.next();
         let location = start.combine_with(self.cursor_location());
         let r = u32::from_str_radix(&self.compilation_unit.text()[(start.first_offset + 2)..(location.last_offset - 1)], 16);
         let Ok(r) = r else {
             self.compilation_unit.add_diagnostic(Diagnostic::new_syntax_error(&location, DiagnosticKind::UnexpectedOrInvalidToken, vec![]));
-            return Err(ParsingFailure);
+            return Ok('_');
         };
         let r = char::from_u32(r);
         let Some(r) = r else {
             self.compilation_unit.add_diagnostic(Diagnostic::new_syntax_error(&location, DiagnosticKind::UnexpectedOrInvalidToken, vec![]));
-            return Err(ParsingFailure);
+            return Ok('_');
         };
         Ok(r)
     }
@@ -676,7 +684,7 @@ impl<'input> Tokenizer<'input> {
         let mv = CharacterValidator::hex_digit_mv(ch);
         if mv.is_none() {
             self.add_unexpected_error();
-            return Err(ParsingFailure);
+            return Ok(0x5F);
         }
         self.characters.next();
         Ok(mv.unwrap())
@@ -740,7 +748,6 @@ impl<'input> Tokenizer<'input> {
             self.characters.next();
             if !CharacterValidator::is_dec_digit(self.characters.peek_or_zero()) {
                 self.add_unexpected_error();
-                return Err(ParsingFailure);
             }
             while CharacterValidator::is_dec_digit(self.characters.peek_or_zero()) {
                 self.characters.next();
@@ -756,7 +763,6 @@ impl<'input> Tokenizer<'input> {
             }
             if !CharacterValidator::is_dec_digit(self.characters.peek_or_zero()) {
                 self.add_unexpected_error();
-                return Err(ParsingFailure);
             }
             while CharacterValidator::is_dec_digit(self.characters.peek_or_zero()) {
                 self.characters.next();
@@ -775,7 +781,6 @@ impl<'input> Tokenizer<'input> {
     fn scan_hex_literal(&mut self, start: Location) -> Result<Option<(Token, Location)>, ParsingFailure> {
         if !CharacterValidator::is_hex_digit(self.characters.peek_or_zero()) {
             self.add_unexpected_error();
-            return Err(ParsingFailure);
         }
         while CharacterValidator::is_hex_digit(self.characters.peek_or_zero()) {
             self.characters.next();
@@ -792,7 +797,6 @@ impl<'input> Tokenizer<'input> {
     fn scan_bin_literal(&mut self, start: Location) -> Result<Option<(Token, Location)>, ParsingFailure> {
         if !CharacterValidator::is_bin_digit(self.characters.peek_or_zero()) {
             self.add_unexpected_error();
-            return Err(ParsingFailure);
         }
         while CharacterValidator::is_bin_digit(self.characters.peek_or_zero()) {
             self.characters.next();
@@ -811,7 +815,6 @@ impl<'input> Tokenizer<'input> {
             self.characters.next();
             if !CharacterValidator::is_dec_digit(self.characters.peek_or_zero()) {
                 self.add_unexpected_error();
-                return Err(ParsingFailure);
             }
             self.characters.next();
         }
@@ -823,7 +826,6 @@ impl<'input> Tokenizer<'input> {
             self.characters.next();
             if !CharacterValidator::is_hex_digit(self.characters.peek_or_zero()) {
                 self.add_unexpected_error();
-                return Err(ParsingFailure);
             }
             self.characters.next();
         }
@@ -835,7 +837,6 @@ impl<'input> Tokenizer<'input> {
             self.characters.next();
             if !CharacterValidator::is_bin_digit(self.characters.peek_or_zero()) {
                 self.add_unexpected_error();
-                return Err(ParsingFailure);
             }
             self.characters.next();
         }
@@ -1095,6 +1096,14 @@ impl<'input> Tokenizer<'input> {
                 self.characters.next();
                 if self.characters.peek_or_zero() != '>' {
                     self.add_unexpected_error();
+                    while self.characters.has_remaining() {
+                        self.characters.next();
+                        if self.characters.peek_or_zero() == '>' {
+                            self.characters.next();
+                            let location = start.combine_with(self.cursor_location());
+                            return Ok((Token::XmlSlashGt, location));
+                        }
+                    }
                     return Err(ParsingFailure);
                 }
                 self.characters.next();
@@ -1131,7 +1140,8 @@ impl<'input> Tokenizer<'input> {
 
             _ => {
                 self.add_unexpected_error();
-                Err(ParsingFailure)
+                self.characters.next();
+                self.scan_ie_xml_tag()
             },
         }
     }

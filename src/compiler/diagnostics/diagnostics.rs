@@ -14,6 +14,7 @@ pub struct Diagnostic {
     pub(crate) is_warning: bool,
     pub(crate) is_verify_error: bool,
     pub(crate) arguments: Vec<DiagnosticArgument>,
+    pub(crate) custom_id: RefCell<Option<String>>,
 }
 
 impl Eq for Diagnostic {}
@@ -45,6 +46,7 @@ impl Diagnostic {
             is_verify_error: false,
             is_warning: false,
             arguments,
+            custom_id: RefCell::new(None),
         }
     }
 
@@ -55,6 +57,7 @@ impl Diagnostic {
             is_verify_error: true,
             is_warning: false,
             arguments,
+            custom_id: RefCell::new(None),
         }
     }
 
@@ -65,6 +68,7 @@ impl Diagnostic {
             is_verify_error: false,
             is_warning: true,
             arguments,
+            custom_id: RefCell::new(None),
         }
     }
 
@@ -92,8 +96,16 @@ impl Diagnostic {
         self.kind.id()
     }
 
-    /// Formats the diagnostic in English.
-    pub fn format_english(&self) -> String {
+    pub fn custom_id(&self) -> Option<String> {
+        self.custom_id.borrow().clone()
+    }
+
+    pub fn set_custom_id(&self, id: Option<&str>) {
+        self.custom_id.replace(id.map(|id| id.to_owned()));
+    }
+
+    /// Formats the diagnostic by overriding the message text.
+    pub fn format_with_message(&self, message: &str) -> String {
         let category = (if self.is_verify_error {
             "Verify error"
         } else if self.is_warning {
@@ -105,9 +117,13 @@ impl Diagnostic {
         let file_path = self.location.compilation_unit.file_path.clone().map_or("".to_owned(), |s| format!("{s}:"));
         let line = self.location.first_line_number();
         let column = self.location.first_column() + 1;
-        let message = self.format_message_english();
         let id = self.id().to_string();
         format!("{file_path}{line}:{column}: {category} #{id}: {message}")
+    }
+
+    /// Formats the diagnostic in English.
+    pub fn format_english(&self) -> String {
+        self.format_with_message(&self.format_message_english())
     }
 
     pub fn format_message_english(&self) -> String {
