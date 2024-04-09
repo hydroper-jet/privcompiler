@@ -178,6 +178,7 @@ dependencies = [
  "conv",
  "dotenvy",
  "file_paths",
+ "hydroper_source_text",
  "late_format",
  "lazy-regex",
  "lazy_static",
@@ -201,6 +202,12 @@ dependencies = [
  "serde",
  "serde_json",
 ]
+
+[[package]]
+name = "hydroper_source_text"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cce3d21a188729674efc26164f9a201d567ab2fe28b6789cb802d7ca66ee7aaf"
 
 [[package]]
 name = "itoa"

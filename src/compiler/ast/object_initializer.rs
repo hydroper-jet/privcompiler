@@ -266,7 +266,7 @@ impl ObjectInitializer {
         match &name.0 {
             FieldName::Brackets(exp) => {
                 verifier.limit_expression_type(exp, &verifier.host.string_type())?;
-                verifier.verify_expression(value_exp, &default());
+                verifier.verify_expression(value_exp, &default())?;
                 missing.clear();
             },
             FieldName::Identifier(name_1) => {
@@ -279,7 +279,7 @@ impl ObjectInitializer {
                     if variable_data_type.is_unresolved() {
                         verifier.verify_expression(value_exp, &default())?;
                     } else {
-                        verifier.limit_expression_type(value_exp, &variable_data_type);
+                        verifier.limit_expression_type(value_exp, &variable_data_type)?;
                     }
                 } else {
                     verifier.verify_expression(value_exp, &default())?;
@@ -296,14 +296,14 @@ impl ObjectInitializer {
                     if variable_data_type.is_unresolved() {
                         verifier.verify_expression(value_exp, &default())?;
                     } else {
-                        verifier.limit_expression_type(value_exp, &variable_data_type);
+                        verifier.limit_expression_type(value_exp, &variable_data_type)?;
                     }
                 } else {
                     verifier.verify_expression(value_exp, &default())?;
                 }
             },
             FieldName::NumericLiteral(_) => {
-                verifier.verify_expression(value_exp, &default());
+                verifier.verify_expression(value_exp, &default())?;
                 verifier.add_verify_error(&name.1, DiagnosticKind::IncompatibleFieldKey, diagnostic_arguments![]);
             },
         }

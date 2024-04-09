@@ -1,31 +1,12 @@
 use std::cell::RefMut;
 use crate::ns::*;
-
-const LINE_SKIP_THRESOLD: usize = 10;
-const HIGHER_LINE_SKIP_THRESOLD: usize = 100;
-const EXTRA_HIGHER_LINE_SKIP_THRESOLD: usize = 1_000;
+use hydroper_source_text::SourceText;
 
 /// `CompilationUnit` identifies a Jet compilation unit and contains
 /// a source text.
 pub struct CompilationUnit {
     pub(crate) file_path: Option<String>,
-    pub(crate) text: String,
-
-    /// Collection of ascending line number *skips* used
-    /// for optimizing retrieval of line numbers or line offsets.
-    pub(crate) line_skips: RefCell<Vec<LineSkip>>,
-    pub(crate) line_skips_counter: Cell<usize>,
-
-    /// Collection used before `line_skips` in line lookups
-    /// to skip lines in a higher threshold.
-    pub(crate) higher_line_skips: RefCell<Vec<HigherLineSkip>>,
-    pub(crate) higher_line_skips_counter: Cell<usize>,
-
-    /// Collection used before `higher_line_skips` in line lookups
-    /// to skip lines in an extra higher threshold.
-    pub(crate) extra_higher_line_skips: RefCell<Vec<HigherLineSkip>>,
-    pub(crate) extra_higher_line_skips_counter: Cell<usize>,
-
+    pub(crate) source_text: SourceText,
     pub(crate) already_tokenized: Cell<bool>,
     diagnostics: RefCell<Vec<Diagnostic>>,
     pub(crate) error_count: Cell<u32>,
@@ -35,36 +16,11 @@ pub struct CompilationUnit {
     pub(crate) comments: RefCell<Vec<Rc<Comment>>>,
 }
 
-#[derive(Copy, Clone)]
-pub(crate) struct LineSkip {
-    /// Line offset.
-    pub offset: usize,
-    /// Line number counting from one.
-    pub line_number: usize,
-}
-
-#[derive(Copy, Clone)]
-pub(crate) struct HigherLineSkip {
-    /// Index to a `LineSkip`, or another `HigherLineSkip` in the case
-    /// of extra higher line skips.
-    pub skip_index: usize,
-    /// Line offset.
-    pub offset: usize,
-    /// Line number counting from one.
-    pub line_number: usize,
-}
-
 impl Default for CompilationUnit {
     fn default() -> Self {
         Self {
             file_path: None,
-            text: "".into(),
-            line_skips: RefCell::new(vec![LineSkip { offset: 0, line_number: 1 }]),
-            line_skips_counter: Cell::new(0),
-            higher_line_skips: RefCell::new(vec![HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 }]),
-            higher_line_skips_counter: Cell::new(0),
-            extra_higher_line_skips: RefCell::new(vec![HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 }]),
-            extra_higher_line_skips_counter: Cell::new(0),
+            source_text: SourceText::new("".into()),
             already_tokenized: Cell::new(false),
             diagnostics: RefCell::new(vec![]),
             invalidated: Cell::new(false),
@@ -81,13 +37,7 @@ impl CompilationUnit {
     pub fn new(file_path: Option<String>, text: String, compiler_options: &Rc<CompilerOptions>) -> Rc<Self> {
         Rc::new(Self {
             file_path,
-            text,
-            line_skips: RefCell::new(vec![LineSkip { offset: 0, line_number: 1 }]),
-            line_skips_counter: Cell::new(0),
-            higher_line_skips: RefCell::new(vec![HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 }]),
-            higher_line_skips_counter: Cell::new(0),
-            extra_higher_line_skips: RefCell::new(vec![HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 }]),
-            extra_higher_line_skips_counter: Cell::new(0),
+            source_text: SourceText::new(text),
             already_tokenized: Cell::new(false),
             diagnostics: RefCell::new(vec![]),
             invalidated: Cell::new(false),
@@ -105,7 +55,7 @@ impl CompilationUnit {
 
     /// Source text.
     pub fn text(&self) -> &String {
-        &self.text
+        &self.source_text.contents
     }
 
     /// Whether the source contains any errors after parsing
@@ -158,195 +108,30 @@ impl CompilationUnit {
         self.warning_count.get()
     }
 
-    pub(crate) fn push_line_skip(&self, line_number: usize, offset: usize) {
-        let counter = self.line_skips_counter.get();
-        if counter == LINE_SKIP_THRESOLD {
-            self.line_skips.borrow_mut().push(LineSkip { line_number, offset });
-            self.line_skips_counter.set(0);
-        } else {
-            self.line_skips_counter.set(counter + 1);
-        }
-
-        let counter = self.higher_line_skips_counter.get();
-        if counter == HIGHER_LINE_SKIP_THRESOLD {
-            self.higher_line_skips.borrow_mut().push(HigherLineSkip { skip_index: self.line_skips.borrow().len() - 1, line_number, offset });
-            self.higher_line_skips_counter.set(0);
-        } else {
-            self.higher_line_skips_counter.set(counter + 1);
-        }
-
-        let counter = self.extra_higher_line_skips_counter.get();
-        if counter == EXTRA_HIGHER_LINE_SKIP_THRESOLD {
-            self.extra_higher_line_skips.borrow_mut().push(HigherLineSkip { skip_index: self.higher_line_skips.borrow().len() - 1, line_number, offset });
-            self.extra_higher_line_skips_counter.set(0);
-        } else {
-            self.extra_higher_line_skips_counter.set(counter + 1);
-        }
-    }
-
     /// Retrieves line number from an offset. The resulting line number
     /// is counted from one.
     pub fn get_line_number(&self, offset: usize) -> usize {
-        // Extra higher line skips
-        let mut last_skip = HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 };
-        let skips = self.extra_higher_line_skips.borrow();
-        let mut skips = skips.iter();
-        while let Some(skip_1) = skips.next() {
-            if offset < skip_1.offset {
-                break;
-            }
-            last_skip = *skip_1;
-        }
+        self.source_text.get_line_number(offset)
+    }
 
-        // Higher line skips
-        let skips = self.higher_line_skips.borrow();
-        let mut skips = skips[last_skip.skip_index..].iter();
-        let mut last_skip = skips.next().unwrap();
-        while let Some(skip_1) = skips.next() {
-            if offset < skip_1.offset {
-                break;
-            }
-            last_skip = skip_1;
-        }
-
-        // Line skips
-        let skips = self.line_skips.borrow();
-        let mut skips = skips[last_skip.skip_index..].iter();
-        let mut last_skip = skips.next().unwrap();
-        while let Some(skip_1) = skips.next() {
-            if offset < skip_1.offset {
-                break;
-            }
-            last_skip = skip_1;
-        }
-
-        let mut current_line = last_skip.line_number;
-        let mut characters = CharacterReader::from(&self.text[last_skip.offset..]);
-        while last_skip.offset + characters.index() < offset {
-            let ch_1 = characters.next();
-            if let Some(ch_1) = ch_1 {
-                if CharacterValidator::is_line_terminator(ch_1) {
-                    if ch_1 == '\r' && characters.peek_or_zero() == '\n' {
-                        characters.next();
-                    }
-                    current_line += 1;
-                }
-            } else {
-                break;
-            }
-        }
-        current_line
+    /// Returns the zero based column of an offset.
+    pub fn get_column(&self, offset: usize) -> usize {
+        self.source_text.get_column(offset)
     }
 
     /// Retrieves offset from line number (counted from one).
     pub fn get_line_offset(&self, line: usize) -> Option<usize> {
-        // Extra higher line skips
-        let mut last_skip = HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 };
-        let skips = self.extra_higher_line_skips.borrow();
-        let mut skips = skips.iter();
-        while let Some(skip_1) = skips.next() {
-            if line < skip_1.line_number {
-                break;
-            }
-            last_skip = *skip_1;
-        }
-
-        // Higher line skips
-        let skips = self.higher_line_skips.borrow();
-        let mut skips = skips[last_skip.skip_index..].iter();
-        let mut last_skip = skips.next().unwrap();
-        while let Some(skip_1) = skips.next() {
-            if line < skip_1.line_number {
-                break;
-            }
-            last_skip = skip_1;
-        }
-
-        // Line skips
-        let skips = self.line_skips.borrow();
-        let mut skips = skips[last_skip.skip_index..].iter();
-        let mut last_skip = skips.next().unwrap();
-        while let Some(skip_1) = skips.next() {
-            if line < skip_1.line_number {
-                break;
-            }
-            last_skip = skip_1;
-        }
-
-        let mut current_line = last_skip.line_number;
-        let mut characters = CharacterReader::from(&self.text[last_skip.offset..]);
-        while current_line != line {
-            let ch_1 = characters.next();
-            if let Some(ch_1) = ch_1 {
-                if CharacterValidator::is_line_terminator(ch_1) {
-                    if ch_1 == '\r' && characters.peek_or_zero() == '\n' {
-                        characters.next();
-                    }
-                    current_line += 1;
-                }
-            } else {
-                return None;
-            }
-        }
-        Some(last_skip.offset + characters.index())
+        self.source_text.get_line_offset(line)
     }
 
     /// Retrieves the offset from the corresponding line of an offset.
     pub fn get_line_offset_from_offset(&self, offset: usize) -> usize {
-        // Extra higher line skips
-        let mut last_skip = HigherLineSkip { skip_index: 0, offset: 0, line_number: 1 };
-        let skips = self.extra_higher_line_skips.borrow();
-        let mut skips = skips.iter();
-        while let Some(skip_1) = skips.next() {
-            if offset < skip_1.offset {
-                break;
-            }
-            last_skip = *skip_1;
-        }
-
-        // Higher line skips
-        let skips = self.higher_line_skips.borrow();
-        let mut skips = skips[last_skip.skip_index..].iter();
-        let mut last_skip = skips.next().unwrap();
-        while let Some(skip_1) = skips.next() {
-            if offset < skip_1.offset {
-                break;
-            }
-            last_skip = skip_1;
-        }
-
-        // Line skips
-        let skips = self.line_skips.borrow();
-        let mut skips = skips[last_skip.skip_index..].iter();
-        let mut last_skip = skips.next().unwrap();
-        while let Some(skip_1) = skips.next() {
-            if offset < skip_1.offset {
-                break;
-            }
-            last_skip = skip_1;
-        }
-
-        let mut current_line_offset = last_skip.offset;
-        let mut characters = CharacterReader::from(&self.text[last_skip.offset..]);
-        while last_skip.offset + characters.index() < offset {
-            let ch_1 = characters.next();
-            if let Some(ch_1) = ch_1 {
-                if CharacterValidator::is_line_terminator(ch_1) {
-                    if ch_1 == '\r' && characters.peek_or_zero() == '\n' {
-                        characters.next();
-                    }
-                    current_line_offset = last_skip.offset + characters.index();
-                }
-            } else {
-                break;
-            }
-        }
-        current_line_offset
+        self.source_text.get_line_offset_from_offset(offset)
     }
 
     pub fn get_line_indent(&self, line: usize) -> usize {
         let line_offset = self.get_line_offset(line).unwrap();
-        let indent = CharacterValidator::indent_count(&self.text[line_offset..]);
+        let indent = CharacterValidator::indent_count(&self.source_text.contents[line_offset..]);
         indent - line_offset
     }
 }

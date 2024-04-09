@@ -59,6 +59,8 @@ mod sequence_expression;
 pub use sequence_expression::*;
 mod type_expression;
 pub use type_expression::*;
+mod invalidated_expression;
+pub use invalidated_expression::*;
 
 // Destructuring
 mod destructuring;
@@ -109,6 +111,8 @@ mod import_directive;
 pub use import_directive::*;
 mod use_package_directive;
 pub use use_package_directive::*;
+mod invalidated_directive;
+pub use invalidated_directive::*;
 
 // Miscellaneous
 mod attributes;

@@ -141,7 +141,7 @@ impl<'input> Parser<'input> {
         }
     }
 
-    fn _consume_context_keyword(&mut self, name: &str) -> Result<bool, ParsingFailure> {
+    fn consume_context_keyword(&mut self, name: &str) -> Result<bool, ParsingFailure> {
         if let Token::Identifier(id) = self.token.0.clone() {
             if id == name && self.token.1.character_count() == name.len() {
                 self.next()?;
@@ -156,7 +156,13 @@ impl<'input> Parser<'input> {
 
     fn expect(&mut self, token: Token) -> Result<(), ParsingFailure> {
         if self.token.0 != token {
-            self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token), Token(self.token.0.clone())]);
+            self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
+            while self.token.0 != Token::Eof {
+                self.next()?;
+                if self.token.0 == token {
+                    return Ok(());
+                }
+            }
             Err(ParsingFailure)
         } else {
             self.next()?;
@@ -166,7 +172,13 @@ impl<'input> Parser<'input> {
 
     fn expect_and_ie_xml_tag(&mut self, token: Token) -> Result<(), ParsingFailure> {
         if self.token.0 != token {
-            self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token), Token(self.token.0.clone())]);
+            self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
+            while self.token.0 != Token::Eof {
+                self.next_ie_xml_tag()?;
+                if self.token.0 == token {
+                    return Ok(());
+                }
+            }
             Err(ParsingFailure)
         } else {
             self.next_ie_xml_tag()?;
@@ -176,7 +188,13 @@ impl<'input> Parser<'input> {
 
     fn expect_and_ie_xml_content(&mut self, token: Token) -> Result<(), ParsingFailure> {
         if self.token.0 != token {
-            self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token), Token(self.token.0.clone())]);
+            self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
+            while self.token.0 != Token::Eof {
+                self.next_ie_xml_content()?;
+                if self.token.0 == token {
+                    return Ok(());
+                }
+            }
             Err(ParsingFailure)
         } else {
             self.next_ie_xml_content()?;
@@ -198,6 +216,11 @@ impl<'input> Parser<'input> {
                 }
             }
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedIdentifier, diagnostic_arguments![Token(self.token.0.clone())]);
+            while self.token.0 != Token::Eof {
+                if let Some(id) = self.consume_identifier(reserved_words)? {
+                    return Ok(id);
+                }
+            }
             Err(ParsingFailure)
         }
     }
@@ -210,6 +233,11 @@ impl<'input> Parser<'input> {
             }
         }
         self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![String(name.into()), Token(self.token.0.clone())]);
+        while self.token.0 != Token::Eof {
+            if self.consume_context_keyword(name)? {
+                return Ok(());
+            }
+        }
         Err(ParsingFailure)
     }
 
@@ -248,7 +276,54 @@ impl<'input> Parser<'input> {
                 Ok(())
             },
             _ => {
-                self.expect(Token::Gt)
+                self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(Token::Gt), Token(self.token.0.clone())]);
+                while self.token.0 != Token::Eof {
+                    self.next()?;
+                    if self.consume_type_parameters_gt()? {
+                        return Ok(());
+                    }
+                }
+                Err(ParsingFailure)
+            },
+        }
+    }
+
+    /// Consumes a greater-than symbol. If the facing token is not greater-than,
+    /// but starts with a greater-than symbol, the first character is shifted off
+    /// from the facing token.
+    fn consume_type_parameters_gt(&mut self) -> Result<bool, ParsingFailure> {
+        match self.token.0 {
+            Token::Gt => {
+                self.next()?;
+                Ok(true)
+            },
+            Token::Ge => {
+                self.token.0 = Token::Assign;
+                self.token.1.first_offset += 1;
+                Ok(true)
+            },
+            Token::RightShift => {
+                self.token.0 = Token::Gt;
+                self.token.1.first_offset += 1;
+                Ok(true)
+            },
+            Token::RightShiftAssign => {
+                self.token.0 = Token::Ge;
+                self.token.1.first_offset += 1;
+                Ok(true)
+            },
+            Token::UnsignedRightShift => {
+                self.token.0 = Token::RightShift;
+                self.token.1.first_offset += 1;
+                Ok(true)
+            },
+            Token::UnsignedRightShiftAssign => {
+                self.token.0 = Token::RightShiftAssign;
+                self.token.1.first_offset += 1;
+                Ok(true)
+            },
+            _ => {
+                Ok(false)
             },
         }
     }
@@ -257,12 +332,24 @@ impl<'input> Parser<'input> {
         self.expect(Token::Eof)
     }
 
+    fn create_invalidated_expression(&self, location: &Location) -> Rc<Expression> {
+        Rc::new(Expression::Invalidated(InvalidatedExpression {
+            location: location.clone(),
+        }))
+    }
+
+    fn create_invalidated_directive(&self, location: &Location) -> Rc<Directive> {
+        Rc::new(Directive::InvalidatedDirective(InvalidatedDirective {
+            location: location.clone(),
+        }))
+    }
+
     pub fn parse_expression(&mut self, context: ParsingExpressionContext) -> Result<Rc<Expression>, ParsingFailure> {
         if let Some(exp) = self.parse_opt_expression(context)? {
             Ok(exp)
         } else {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedExpression, diagnostic_arguments![Token(self.token.0.clone())]);
-            Err(ParsingFailure)
+            Ok(self.create_invalidated_expression(&self.tokenizer.cursor_location()))
         }
     }
 

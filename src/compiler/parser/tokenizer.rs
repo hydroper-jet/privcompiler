@@ -9,7 +9,7 @@ pub struct Tokenizer<'input> {
 impl<'input> Tokenizer<'input> {
     /// Constructs a tokenizer.
     pub fn new(compilation_unit: &'input Rc<CompilationUnit>) -> Self {
-        let text: &'input str = compilation_unit.text.as_ref();
+        let text: &'input str = compilation_unit.text();
         let compilation_unit = compilation_unit.clone();
         assert!(!compilation_unit.already_tokenized.get(), "A CompilationUnit must be tokenized at most once.");
         compilation_unit.already_tokenized.set(true);
@@ -472,7 +472,7 @@ impl<'input> Tokenizer<'input> {
 
     fn character_ahead_location(&self) -> Location {
         if self.characters.reached_end() {
-            return Location::with_offset(&self.compilation_unit, self.compilation_unit.text.len());
+            return Location::with_offset(&self.compilation_unit, self.compilation_unit.text().len());
         }
         let offset = self.characters.index();
         let mut next_characters = self.characters.clone();
@@ -480,7 +480,7 @@ impl<'input> Tokenizer<'input> {
         Location::with_offsets(&self.compilation_unit, offset, next_characters.index() + 1)
     }
 
-    fn cursor_location(&self) -> Location {
+    pub fn cursor_location(&self) -> Location {
         let offset = self.characters.index();
         Location::with_offset(&self.compilation_unit, offset)
     }
@@ -499,13 +499,11 @@ impl<'input> Tokenizer<'input> {
         if ch == '\x0D' && self.characters.peek_at_or_zero(1) == '\x0A' {
             self.characters.skip_count_in_place(2);
             self.line_number += 1;
-            self.compilation_unit.push_line_skip(self.line_number, self.characters.index());
             return true;
         }
         if CharacterValidator::is_line_terminator(ch) {
             self.characters.next();
             self.line_number += 1;
-            self.compilation_unit.push_line_skip(self.line_number, self.characters.index());
             return true;
         }
         false
@@ -528,7 +526,7 @@ impl<'input> Tokenizer<'input> {
 
             self.compilation_unit.comments.borrow_mut().push(Rc::new(Comment {
                 multiline: false,
-                content: RefCell::new(self.compilation_unit.text[(location.first_offset() + 2)..location.last_offset()].to_owned()),
+                content: RefCell::new(self.compilation_unit.text()[(location.first_offset() + 2)..location.last_offset()].to_owned()),
                 location: RefCell::new(location),
             }));
 
@@ -563,7 +561,7 @@ impl<'input> Tokenizer<'input> {
 
             self.compilation_unit.comments.borrow_mut().push(Rc::new(Comment {
                 multiline: true,
-                content: RefCell::new(self.compilation_unit.text[(location.first_offset() + 2)..(location.last_offset() - 2)].to_owned()),
+                content: RefCell::new(self.compilation_unit.text()[(location.first_offset() + 2)..(location.last_offset() - 2)].to_owned()),
                 location: RefCell::new(location),
             }));
 
@@ -660,7 +658,7 @@ impl<'input> Tokenizer<'input> {
         }
         self.characters.next();
         let location = start.combine_with(self.cursor_location());
-        let r = u32::from_str_radix(&self.compilation_unit.text[(start.first_offset + 2)..(location.last_offset - 1)], 16);
+        let r = u32::from_str_radix(&self.compilation_unit.text()[(start.first_offset + 2)..(location.last_offset - 1)], 16);
         let Ok(r) = r else {
             self.compilation_unit.add_diagnostic(Diagnostic::new_syntax_error(&location, DiagnosticKind::UnexpectedOrInvalidToken, vec![]));
             return Err(ParsingFailure);
@@ -769,7 +767,7 @@ impl<'input> Tokenizer<'input> {
         self.unallow_numeric_suffix();
 
         let location = start.combine_with(self.cursor_location());
-        let string = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+        let string = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
 
         Ok(Some((Token::NumericLiteral(string), location)))
     }
@@ -787,7 +785,7 @@ impl<'input> Tokenizer<'input> {
         self.unallow_numeric_suffix();
 
         let location = start.combine_with(self.cursor_location());
-        let s = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+        let s = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
         Ok(Some((Token::NumericLiteral(s), location)))
     }
 
@@ -804,7 +802,7 @@ impl<'input> Tokenizer<'input> {
         self.unallow_numeric_suffix();
 
         let location = start.combine_with(self.cursor_location());
-        let s = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+        let s = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
         Ok(Some((Token::NumericLiteral(s), location)))
     }
 
@@ -1062,7 +1060,7 @@ impl<'input> Tokenizer<'input> {
                 self.characters.next();
             }
             let location = start.combine_with(self.cursor_location());
-            let name = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+            let name = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
             return Ok((Token::XmlName(name), location));
         }
 
@@ -1117,7 +1115,7 @@ impl<'input> Tokenizer<'input> {
                     self.add_unexpected_error();
                     return Err(ParsingFailure)
                 }
-                let value = self.compilation_unit.text[(start.first_offset + 1)..self.cursor_location().first_offset].to_owned();
+                let value = self.compilation_unit.text()[(start.first_offset + 1)..self.cursor_location().first_offset].to_owned();
                 self.characters.next();
                 
                 let location = start.combine_with(self.cursor_location());
@@ -1189,7 +1187,7 @@ impl<'input> Tokenizer<'input> {
                 }
 
                 let location = start.combine_with(self.cursor_location());
-                let content = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+                let content = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
                 Ok((Token::XmlText(content), location))
             },
         }
@@ -1215,7 +1213,7 @@ impl<'input> Tokenizer<'input> {
             }
 
             let location = start.combine_with(self.cursor_location());
-            let content = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+            let content = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
 
             return Ok(Some((Token::XmlMarkup(content), location)));
         }
@@ -1238,7 +1236,7 @@ impl<'input> Tokenizer<'input> {
             }
 
             let location = start.combine_with(self.cursor_location());
-            let content = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+            let content = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
 
             return Ok(Some((Token::XmlMarkup(content), location)));
         }
@@ -1261,7 +1259,7 @@ impl<'input> Tokenizer<'input> {
             }
 
             let location = start.combine_with(self.cursor_location());
-            let content = self.compilation_unit.text[location.first_offset..location.last_offset].to_owned();
+            let content = self.compilation_unit.text()[location.first_offset..location.last_offset].to_owned();
 
             return Ok(Some((Token::XmlMarkup(content), location)));
         }
