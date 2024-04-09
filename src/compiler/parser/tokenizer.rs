@@ -481,9 +481,6 @@ impl<'input> Tokenizer<'input> {
     }
 
     fn cursor_location(&self) -> Location {
-        if self.characters.reached_end() {
-            return Location::with_offset(&self.compilation_unit, self.compilation_unit.text.len());
-        }
         let offset = self.characters.index();
         Location::with_offset(&self.compilation_unit, offset)
     }
