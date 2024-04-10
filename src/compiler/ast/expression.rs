@@ -131,4 +131,8 @@ impl Expression {
             _ => None,
         }
     }
+
+    pub(crate) fn is_invalidated(&self) -> bool {
+        matches!(self, Self::Invalidated(_))
+    }
 }
