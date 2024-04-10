@@ -72,6 +72,7 @@ lazy_static! {
         DiagnosticKind::UndefinedProperty.id() => "Access of undefined property '{1}'".into(),
         DiagnosticKind::IncompatibleFieldKey.id() => "Incompatible field key".into(),
         DiagnosticKind::MissingPropertyInLiteral.id() => "Missing property in literal: '{1}'".into(),
+        DiagnosticKind::MalformedDestructuring.id() => "Malformed destructuring".into(),
         // DiagnosticKind::K.id() => "".into(),
     };
 }
