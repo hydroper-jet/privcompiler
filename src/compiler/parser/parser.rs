@@ -2264,7 +2264,7 @@ impl<'input> Parser<'input> {
 
     fn parse_type_case_elements(&mut self, context: ParsingDirectiveContext) -> Result<Vec<TypeCase>, ParsingFailure> {
         let mut cases = vec![];
-        while !self.peek(Token::RightBrace) {
+        while !self.peek(Token::RightBrace) && !self.peek(Token::Eof) {
             if self.peek(Token::Default) {
                 self.mark_location();
                 self.next()?;
