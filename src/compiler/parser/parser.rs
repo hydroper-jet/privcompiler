@@ -157,7 +157,8 @@ impl<'input> Parser<'input> {
     fn expect(&mut self, token: Token) -> Result<(), ParsingFailure> {
         if self.token.0 != token {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
-            while self.token.0 != Token::Eof {
+            let expecting_identifier_name = token.is_identifier_name();
+            while self.token.0 != Token::Eof && (if expecting_identifier_name { self.token.0.is_identifier_name() } else { true }) {
                 self.next()?;
                 if self.token.0 == token {
                     return Ok(());
@@ -216,6 +217,7 @@ impl<'input> Parser<'input> {
                 }
             }
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedIdentifier, diagnostic_arguments![Token(self.token.0.clone())]);
+            /*
             while self.token.0 != Token::Eof {
                 if let Some(id) = self.consume_identifier(reserved_words)? {
                     return Ok(id);
@@ -223,7 +225,8 @@ impl<'input> Parser<'input> {
                     self.next()?;
                 }
             }
-            Err(ParsingFailure)
+            */
+            Ok((INVALIDATED_IDENTIFIER.to_owned(), self.token.1.clone()))
         }
     }
 
@@ -235,14 +238,14 @@ impl<'input> Parser<'input> {
             }
         }
         self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![String(name.into()), Token(self.token.0.clone())]);
-        while self.token.0 != Token::Eof {
+        while self.token.0 != Token::Eof && self.token.0.is_identifier_name() {
             if self.consume_context_keyword(name)? {
                 return Ok(());
             } else {
                 self.next()?;
             }
         }
-        Err(ParsingFailure)
+        Ok(())
     }
 
     /// Expects a greater-than symbol. If the facing token is not greater-than,
