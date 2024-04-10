@@ -218,7 +218,7 @@ impl<'input> Parser<'input> {
             }
             self.add_syntax_error(&self.token_location(), DiagnosticKind::ExpectedIdentifier, diagnostic_arguments![Token(self.token.0.clone())]);
             /*
-            while self.token.0 != Token::Eof {
+            while self.token.0 != Token::Eof && self.token.0.is_identifier_name() {
                 if let Some(id) = self.consume_identifier(reserved_words)? {
                     return Ok(id);
                 } else {
