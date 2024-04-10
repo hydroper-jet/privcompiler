@@ -2043,7 +2043,10 @@ impl<'input> Parser<'input> {
             let exp = self.parse_expression(ParsingExpressionContext {
                 allow_in: true, min_precedence: OperatorPrecedence::List, ..default()
             })?;
-            let semicolon_inserted = if exp.is_invalidated() { true } else { self.parse_semicolon()? };
+            let semicolon_inserted = if exp.is_invalidated() {
+                self.next()?;
+                true
+            } else { self.parse_semicolon()? };
             Ok((Rc::new(Directive::ExpressionStatement(ExpressionStatement {
                 location: self.pop_location(),
                 expression: exp,
