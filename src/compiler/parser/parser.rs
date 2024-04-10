@@ -164,7 +164,7 @@ impl<'input> Parser<'input> {
                     return Ok(());
                 }
             }
-            Err(ParsingFailure)
+            Ok(())
         } else {
             self.next()?;
             Ok(())
@@ -180,7 +180,7 @@ impl<'input> Parser<'input> {
                     return Ok(());
                 }
             }
-            Err(ParsingFailure)
+            Ok(())
         } else {
             self.next_ie_xml_tag()?;
             Ok(())
@@ -196,7 +196,7 @@ impl<'input> Parser<'input> {
                     return Ok(());
                 }
             }
-            Err(ParsingFailure)
+            Ok(())
         } else {
             self.next_ie_xml_content()?;
             Ok(())
@@ -290,7 +290,7 @@ impl<'input> Parser<'input> {
                         return Ok(());
                     }
                 }
-                Err(ParsingFailure)
+                Ok(())
             },
         }
     }
