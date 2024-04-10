@@ -136,6 +136,13 @@ impl Expression {
         matches!(self, Self::Invalidated(_))
     }
 
+    pub fn is_non_null_operation(&self) -> bool {
+        match self {
+            Self::Unary(expr) => expr.operator == Operator::NonNull,
+            _ => false,
+        }
+    }
+
     pub fn is_valid_destructuring(&self) -> bool {
         match self {
             Self::QualifiedIdentifier(id) => !id.attribute && id.qualifier.is_none() && match &id.id {
