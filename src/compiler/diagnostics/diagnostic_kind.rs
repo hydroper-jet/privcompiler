@@ -68,6 +68,7 @@ pub enum DiagnosticKind {
     UndefinedProperty = 1089,
     IncompatibleFieldKey = 1090,
     MissingPropertyInLiteral = 1091,
+    MalformedDestructuring = 1092,
 }
 
 impl DiagnosticKind {
