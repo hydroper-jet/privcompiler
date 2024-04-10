@@ -2043,7 +2043,7 @@ impl<'input> Parser<'input> {
             let exp = self.parse_expression(ParsingExpressionContext {
                 allow_in: true, min_precedence: OperatorPrecedence::List, ..default()
             })?;
-            let semicolon_inserted = self.parse_semicolon()?;
+            let semicolon_inserted = if exp.is_invalidated() { true } else { self.parse_semicolon()? };
             Ok((Rc::new(Directive::ExpressionStatement(ExpressionStatement {
                 location: self.pop_location(),
                 expression: exp,
@@ -2108,7 +2108,7 @@ impl<'input> Parser<'input> {
         self.expect(Token::LeftBrace)?;
         let mut directives = vec![];
         let mut semicolon_inserted = false;
-        while !self.peek(Token::RightBrace) {
+        while !self.peek(Token::RightBrace) && !self.peek(Token::Eof) {
             if !directives.is_empty() && !semicolon_inserted {
                 self.expect(Token::Semicolon)?;
             }
