@@ -145,6 +145,7 @@ impl Expression {
 
     pub fn is_valid_destructuring(&self) -> bool {
         match self {
+            Self::Invalidated(_) => true,
             Self::QualifiedIdentifier(id) => !id.attribute && id.qualifier.is_none() && match &id.id {
                 QualifiedIdentifierIdentifier::Id(id) => id.0 != "*",
                 _ => false,
