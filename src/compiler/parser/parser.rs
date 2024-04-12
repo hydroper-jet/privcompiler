@@ -43,7 +43,7 @@ impl<'input> Parser<'input> {
     }
 
     fn pop_location(&mut self) -> Location {
-        self.locations.pop().unwrap().combine_with_start_of(self.token.1.clone())
+        self.locations.pop().unwrap().combine_with_start_of(self.previous_token.1.clone())
     }
 
     fn add_syntax_error(&self, location: &Location, kind: DiagnosticKind, arguments: Vec<DiagnosticArgument>) {
