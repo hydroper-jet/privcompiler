@@ -1,12 +1,12 @@
 use crate::ns::*;
 use by_address::ByAddress;
 
-/// Structure that assigns semantic symbols to AST nodes.
-pub struct AstToSymbol {
-    compilation_units: RefCell<HashMap<ByAddress<Rc<CompilationUnit>>, AstToSymbol1>>,
+/// Structure that assigns semantic symbols to syntactic nodes.
+pub struct TreeSemantics {
+    compilation_units: RefCell<HashMap<ByAddress<Rc<CompilationUnit>>, TreeSemantics1>>,
 }
 
-struct AstToSymbol1 {
+struct TreeSemantics1 {
     expressions: HashMap<AstAsKey<Rc<Expression>>, Option<Symbol>>,
     directives: HashMap<AstAsKey<Rc<Directive>>, Option<Symbol>>,
     simple_variable_definitions: HashMap<AstAsKey<Rc<SimpleVariableDefinition>>, Option<Symbol>>,
@@ -15,7 +15,7 @@ struct AstToSymbol1 {
     function_commons: HashMap<AstAsKey<Rc<FunctionCommon>>, Option<Symbol>>,
 }
 
-impl AstToSymbol1 {
+impl TreeSemantics1 {
     fn new() -> Self {
         Self {
             expressions: HashMap::new(),
@@ -28,7 +28,7 @@ impl AstToSymbol1 {
     }
 }
 
-impl AstToSymbol {
+impl TreeSemantics {
     pub fn new() -> Rc<Self> {
         Rc::new(Self {
             compilation_units: RefCell::new(HashMap::new()),
@@ -36,7 +36,7 @@ impl AstToSymbol {
     }
 }
 
-pub trait AstToSymbolAccessor<T> {
+pub trait TreeSemanticsAccessor<T> {
     fn get(&self, node: &Rc<T>) -> Option<Symbol>;
     fn set(&self, node: &Rc<T>, symbol: Option<Symbol>);
     fn delete(&self, node: &Rc<T>) -> bool;
@@ -46,7 +46,7 @@ pub trait AstToSymbolAccessor<T> {
     }
 }
 
-impl AstToSymbolAccessor<Expression> for AstToSymbol {
+impl TreeSemanticsAccessor<Expression> for TreeSemantics {
     fn get(&self, node: &Rc<Expression>) -> Option<Symbol> {
         let compilation_units = self.compilation_units.borrow();
         let m1 = compilation_units.get(&ByAddress(node.location().compilation_unit()));
@@ -64,7 +64,7 @@ impl AstToSymbolAccessor<Expression> for AstToSymbol {
         if let Some(m1) = m1 {
             m1.expressions.insert(AstAsKey(node.clone()), symbol);
         } else {
-            let mut m1 = AstToSymbol1::new();
+            let mut m1 = TreeSemantics1::new();
             m1.expressions.insert(AstAsKey(node.clone()), symbol);
             compilation_units.insert(ByAddress(compilation_unit), m1);
         }
@@ -82,7 +82,7 @@ impl AstToSymbolAccessor<Expression> for AstToSymbol {
     }
 }
 
-impl AstToSymbolAccessor<Directive> for AstToSymbol {
+impl TreeSemanticsAccessor<Directive> for TreeSemantics {
     fn get(&self, node: &Rc<Directive>) -> Option<Symbol> {
         let compilation_units = self.compilation_units.borrow();
         let m1 = compilation_units.get(&ByAddress(node.location().compilation_unit()));
@@ -100,7 +100,7 @@ impl AstToSymbolAccessor<Directive> for AstToSymbol {
         if let Some(m1) = m1 {
             m1.directives.insert(AstAsKey(node.clone()), symbol);
         } else {
-            let mut m1 = AstToSymbol1::new();
+            let mut m1 = TreeSemantics1::new();
             m1.directives.insert(AstAsKey(node.clone()), symbol);
             compilation_units.insert(ByAddress(compilation_unit), m1);
         }
@@ -118,7 +118,7 @@ impl AstToSymbolAccessor<Directive> for AstToSymbol {
     }
 }
 
-impl AstToSymbolAccessor<SimpleVariableDefinition> for AstToSymbol {
+impl TreeSemanticsAccessor<SimpleVariableDefinition> for TreeSemantics {
     fn get(&self, node: &Rc<SimpleVariableDefinition>) -> Option<Symbol> {
         let compilation_units = self.compilation_units.borrow();
         let m1 = compilation_units.get(&ByAddress(node.location.compilation_unit()));
@@ -136,7 +136,7 @@ impl AstToSymbolAccessor<SimpleVariableDefinition> for AstToSymbol {
         if let Some(m1) = m1 {
             m1.simple_variable_definitions.insert(AstAsKey(node.clone()), symbol);
         } else {
-            let mut m1 = AstToSymbol1::new();
+            let mut m1 = TreeSemantics1::new();
             m1.simple_variable_definitions.insert(AstAsKey(node.clone()), symbol);
             compilation_units.insert(ByAddress(compilation_unit), m1);
         }
@@ -154,7 +154,7 @@ impl AstToSymbolAccessor<SimpleVariableDefinition> for AstToSymbol {
     }
 }
 
-impl AstToSymbolAccessor<Block> for AstToSymbol {
+impl TreeSemanticsAccessor<Block> for TreeSemantics {
     fn get(&self, node: &Rc<Block>) -> Option<Symbol> {
         let compilation_units = self.compilation_units.borrow();
         let m1 = compilation_units.get(&ByAddress(node.location.compilation_unit()));
@@ -172,7 +172,7 @@ impl AstToSymbolAccessor<Block> for AstToSymbol {
         if let Some(m1) = m1 {
             m1.blocks.insert(AstAsKey(node.clone()), symbol);
         } else {
-            let mut m1 = AstToSymbol1::new();
+            let mut m1 = TreeSemantics1::new();
             m1.blocks.insert(AstAsKey(node.clone()), symbol);
             compilation_units.insert(ByAddress(compilation_unit), m1);
         }
@@ -190,7 +190,7 @@ impl AstToSymbolAccessor<Block> for AstToSymbol {
     }
 }
 
-impl AstToSymbolAccessor<Program> for AstToSymbol {
+impl TreeSemanticsAccessor<Program> for TreeSemantics {
     fn get(&self, node: &Rc<Program>) -> Option<Symbol> {
         let compilation_units = self.compilation_units.borrow();
         let m1 = compilation_units.get(&ByAddress(node.location.compilation_unit()));
@@ -208,7 +208,7 @@ impl AstToSymbolAccessor<Program> for AstToSymbol {
         if let Some(m1) = m1 {
             m1.programs.insert(AstAsKey(node.clone()), symbol);
         } else {
-            let mut m1 = AstToSymbol1::new();
+            let mut m1 = TreeSemantics1::new();
             m1.programs.insert(AstAsKey(node.clone()), symbol);
             compilation_units.insert(ByAddress(compilation_unit), m1);
         }
@@ -226,7 +226,7 @@ impl AstToSymbolAccessor<Program> for AstToSymbol {
     }
 }
 
-impl AstToSymbolAccessor<FunctionCommon> for AstToSymbol {
+impl TreeSemanticsAccessor<FunctionCommon> for TreeSemantics {
     fn get(&self, node: &Rc<FunctionCommon>) -> Option<Symbol> {
         let compilation_units = self.compilation_units.borrow();
         let m1 = compilation_units.get(&ByAddress(node.location.compilation_unit()));
@@ -244,7 +244,7 @@ impl AstToSymbolAccessor<FunctionCommon> for AstToSymbol {
         if let Some(m1) = m1 {
             m1.function_commons.insert(AstAsKey(node.clone()), symbol);
         } else {
-            let mut m1 = AstToSymbol1::new();
+            let mut m1 = TreeSemantics1::new();
             m1.function_commons.insert(AstAsKey(node.clone()), symbol);
             compilation_units.insert(ByAddress(compilation_unit), m1);
         }

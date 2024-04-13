@@ -1,5 +1,8 @@
 use crate::ns::*;
 
+/// Invalidated identifier name.
+pub static INVALIDATED_IDENTIFIER: &'static str = "\x00\x00\x00\x00\x00";
+
 /// Indicates a fatal syntax error that leads parsing
 /// to finish without a resulting node.
 /// 

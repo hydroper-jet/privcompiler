@@ -429,4 +429,8 @@ impl Token {
             _ => None,
         }
     }
+
+    pub fn is_identifier_name(&self) -> bool {
+        matches!(self, Self::Identifier(_)) || self.is_reserved_word()
+    }
 }

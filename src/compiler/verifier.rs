@@ -48,7 +48,7 @@ impl Verifier {
         Self {
             verifier: VerifierVerifier {
                 host: host.clone(),
-                ast_to_symbol: AstToSymbol::new(),
+                ast_to_symbol: TreeSemantics::new(),
                 deferred_directives: vec![],
                 deferred_function_commons: vec![],
                 invalidated: false,
@@ -58,7 +58,7 @@ impl Verifier {
         }
     }
 
-    pub fn ast_to_symbol(&self) -> &Rc<AstToSymbol> {
+    pub fn ast_to_symbol(&self) -> &Rc<TreeSemantics> {
         &self.verifier.ast_to_symbol
     }
 
@@ -105,7 +105,7 @@ impl Verifier {
 
 pub(crate) struct VerifierVerifier {
     pub host: Rc<SymbolHost>,
-    pub ast_to_symbol: Rc<AstToSymbol>,
+    pub ast_to_symbol: Rc<TreeSemantics>,
     /// List of (phase, scope, directive).
     pub deferred_directives: Vec<(usize, Symbol, Rc<Directive>)>,
     /// List of (phase, scope, common).
@@ -116,7 +116,7 @@ pub(crate) struct VerifierVerifier {
 }
 
 impl VerifierVerifier {
-    pub fn ast_to_symbol(&self) -> &Rc<AstToSymbol> {
+    pub fn ast_to_symbol(&self) -> &Rc<TreeSemantics> {
         &self.ast_to_symbol
     }
 
