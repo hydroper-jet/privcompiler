@@ -1954,7 +1954,7 @@ impl<'input> Parser<'input> {
             if arguments.is_some() {
                 semicolon_inserted = self.parse_semicolon()?;
             }
-            if arguments.is_none() || (!semicolon_inserted && (self.peek(Token::Dot) || self.peek(Token::LeftBracket))) {
+            if !semicolon_inserted && (self.peek(Token::Dot) || self.peek(Token::LeftBracket)) {
                 if !(self.peek(Token::Dot) || self.peek(Token::LeftBracket)) {
                     self.expect(Token::Dot)?;
                 }
@@ -3229,7 +3229,7 @@ impl<'input> Parser<'input> {
             FunctionName::Identifier(name)
         };
         let block_context = if constructor {
-            ParsingDirectiveContext::ConstructorBlock { super_statement_found: Cell::new(false) }
+            ParsingDirectiveContext::ConstructorBlock { super_statement_found: Rc::new(Cell::new(false)) }
         } else {
             ParsingDirectiveContext::Default
         };
