@@ -40,6 +40,18 @@ pub enum ParsingDirectiveContext {
 }
 
 impl ParsingDirectiveContext {
+    pub fn may_contain_super_statement(&self) -> bool {
+        matches!(self, Self::ConstructorBlock { .. }) || matches!(self, Self::WithControl { .. })
+    }
+
+    pub fn super_statement_found(&self) -> bool {
+        match self {
+            Self::ConstructorBlock { super_statement_found } => super_statement_found.get(),
+            Self::WithControl { super_statement_found, .. } => super_statement_found.as_ref().or(Some(&Rc::new(Cell::new(false)))).unwrap().get(),
+            _ => false,
+        }
+    }
+
     pub fn function_name_is_constructor(&self, name: &(String, Location)) -> bool {
         if let ParsingDirectiveContext::ClassBlock { name: ref name_1 } = self {
             &name.0 == name_1
