@@ -1983,9 +1983,9 @@ impl<'input> Parser<'input> {
 
                 // Check whether super statement is allowed here
                 let allowed_here;
-                if let ParsingDirectiveContext::ConstructorBlock { super_statement_found } = &context {
-                    allowed_here = !super_statement_found.get();
-                    super_statement_found.set(true);
+                if context.may_contain_super_statement() {
+                    allowed_here = context.super_statement_found();
+                    context.set_super_statement_found(true);
                 } else {
                     allowed_here = false;
                 }
