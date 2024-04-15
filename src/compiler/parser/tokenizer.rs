@@ -1385,12 +1385,12 @@ mod tests {
         let mut tokenizer = Tokenizer::new(&source);
 
         let Ok((Token::Div, start)) = tokenizer.scan_ie_div() else { panic!() };
-        let Ok((Token::RegExpLiteral { body, flags }, _)) = tokenizer.scan_regexp_literal(start) else { panic!() };
+        let Ok((Token::RegExpLiteral { body, flags }, _)) = tokenizer.scan_regexp_literal(start, "".into()) else { panic!() };
         assert_eq!(body, "(?:)");
         assert_eq!(flags, "");
 
         let Ok((Token::Div, start)) = tokenizer.scan_ie_div() else { panic!() };
-        let Ok((Token::RegExpLiteral { body, flags }, _)) = tokenizer.scan_regexp_literal(start) else { panic!() };
+        let Ok((Token::RegExpLiteral { body, flags }, _)) = tokenizer.scan_regexp_literal(start, "".into()) else { panic!() };
         assert_eq!(body, "(?:)");
         assert_eq!(flags, "gi");
     }
