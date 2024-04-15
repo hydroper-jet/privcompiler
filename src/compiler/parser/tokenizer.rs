@@ -426,8 +426,7 @@ impl<'input> Tokenizer<'input> {
 
     /// Scans regular expression after a `/` or `/=` token has been scanned by
     /// `scan_ie_div`.
-    pub fn scan_regexp_literal(&mut self, start: Location) -> Result<(Token, Location), ParsingFailure> {
-        let mut body = String::new();
+    pub fn scan_regexp_literal(&mut self, start: Location, mut body: String) -> Result<(Token, Location), ParsingFailure> {
         loop {
             let ch = self.characters.peek_or_zero();
             if ch == '/' {
