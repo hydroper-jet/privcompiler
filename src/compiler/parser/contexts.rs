@@ -52,6 +52,18 @@ impl ParsingDirectiveContext {
         }
     }
 
+    pub fn set_super_statement_found(&self, value: bool) {
+        match self {
+            Self::ConstructorBlock { super_statement_found } => { super_statement_found.set(value) },
+            Self::WithControl { super_statement_found, .. } => {
+                if let Some(found) = super_statement_found.as_ref() {
+                    found.set(value);
+                }
+            },
+            _ => {},
+        }
+    }
+
     pub fn function_name_is_constructor(&self, name: &(String, Location)) -> bool {
         if let ParsingDirectiveContext::ClassBlock { name: ref name_1 } = self {
             &name.0 == name_1
