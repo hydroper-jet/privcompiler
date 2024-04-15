@@ -441,9 +441,11 @@ impl<'input> Tokenizer<'input> {
                     return Err(ParsingFailure);
                 } else if CharacterValidator::is_line_terminator(ch) {
                     self.add_unexpected_error();
+                    self.consume_line_terminator();
+                } else {
+                    self.characters.next();
+                    body.push(ch);
                 }
-                self.consume_line_terminator();
-                body.push(ch);
             } else if CharacterValidator::is_line_terminator(ch) {
                 body.push('\n');
                 self.consume_line_terminator();
