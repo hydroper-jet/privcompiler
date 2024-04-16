@@ -158,7 +158,7 @@ impl<'input> Parser<'input> {
         if self.token.0 != token {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
             let expecting_identifier_name = token.is_identifier_name();
-            while self.tokenizer.characters().has_remaining() && (if expecting_identifier_name { self.token.0.is_identifier_name() } else { true }) {
+            while self.token.0 != Token::Eof && (if expecting_identifier_name { self.token.0.is_identifier_name() } else { true }) {
                 self.next()?;
                 if self.token.0 == token {
                     return Ok(());
@@ -174,7 +174,7 @@ impl<'input> Parser<'input> {
     fn expect_and_ie_xml_tag(&mut self, token: Token) -> Result<(), ParsingFailure> {
         if self.token.0 != token {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
-            while self.tokenizer.characters().has_remaining() {
+            while self.token.0 != Token::Eof {
                 self.next_ie_xml_tag()?;
                 if self.token.0 == token {
                     return Ok(());
@@ -190,7 +190,7 @@ impl<'input> Parser<'input> {
     fn expect_and_ie_xml_content(&mut self, token: Token) -> Result<(), ParsingFailure> {
         if self.token.0 != token {
             self.add_syntax_error(&self.token_location(), DiagnosticKind::Expected, diagnostic_arguments![Token(token.clone()), Token(self.token.0.clone())]);
-            while self.tokenizer.characters().has_remaining() {
+            while self.token.0 != Token::Eof {
                 self.next_ie_xml_content()?;
                 if self.token.0 == token {
                     return Ok(());
@@ -1513,6 +1513,8 @@ impl<'input> Parser<'input> {
                 let start = self.token_location();
                 let element = self.parse_xml_element(start, false)?;
                 content.push(Rc::new(XmlElementContent::XmlElement(Rc::new(element))));
+            } else if self.peek(Token::Eof) {
+                break;
             } else {
                 self.expect_and_ie_xml_content(Token::XmlLtSlash)?;
             }
